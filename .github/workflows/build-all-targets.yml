@@ -1,12 +1,10 @@
-name: Tag Release
+name: Build All Targets
 
 on:
   push:
-    tags:
-      - "*"
-
-permissions:
-  contents: write
+    branches:
+      - "**"
+  pull_request:
 
 jobs:
   build:
@@ -48,6 +46,7 @@ jobs:
             mc: "26.1"
             loader: "neoforge"
             java: "25"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,41 +56,16 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
-          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Build target
         run: ./gradlew clean :${{ matrix.loader }}:jar -Ptarget.mc=${{ matrix.mc }} --no-daemon
 
-      - name: Upload target artifact
+      - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
           name: locatorbar-${{ matrix.target }}
           path: ${{ matrix.loader }}/build/libs/*.jar
           if-no-files-found: error
-
-  release:
-    name: Publish GitHub Release
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Merge jars
-        run: |
-          mkdir -p release-jars
-          find artifacts -name "*.jar" -exec cp {} release-jars/ \;
-
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          body_path: .github/changelog.md
-          files: release-jars/*.jar
-          fail_on_unmatched_files: true

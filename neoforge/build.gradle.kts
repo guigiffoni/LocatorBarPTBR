@@ -1,16 +1,19 @@
-plugins {
-    id("dev.architectury.loom-no-remap")
+if (rootProject.extra["use_no_remap"] as Boolean) {
+    apply(plugin = "dev.architectury.loom-no-remap")
+} else {
+    apply(plugin = "dev.architectury.loom")
 }
 
 base {
-    archivesName.set("${rootProject.property("archives_name")}-${project.name}+${rootProject.property("minecraft_version")}")
+    archivesName.set(
+        "${rootProject.property("archives_name")}-neoforge-${project.version}+${rootProject.extra["minecraft_version"]}"
+    )
 }
 
 loom {
+    silentMojangMappingsLicense()
     runs {
-        named("client") {
-            client()
-        }
+        named("client") { client() }
     }
 }
 
@@ -22,13 +25,15 @@ sourceSets {
 }
 
 dependencies {
-    minecraft("net.minecraft:minecraft:${rootProject.property("minecraft_version")}")
-    add("neoForge", "net.neoforged:neoforge:${rootProject.property("neoforge_version")}")
+    minecraft("net.minecraft:minecraft:${rootProject.extra["minecraft_version"]}")
+    if (!(rootProject.extra["use_no_remap"] as Boolean)) {
+        mappings(loom.officialMojangMappings())
+    }
+    add("neoForge", "net.neoforged:neoforge:${rootProject.extra["neoforge_version"]}")
 }
 
 tasks.processResources {
     inputs.property("version", project.version)
-
     filesMatching("META-INF/neoforge.mods.toml") {
         expand(mapOf("version" to project.version))
     }
@@ -36,10 +41,11 @@ tasks.processResources {
 
 java {
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
+    val release = rootProject.extra["java_release"] as Int
+    sourceCompatibility = JavaVersion.toVersion(release)
+    targetCompatibility = JavaVersion.toVersion(release)
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release.set(25)
+    options.release.set(rootProject.extra["java_release"] as Int)
 }

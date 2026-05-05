@@ -5,10 +5,11 @@ plugins {
 
 java {
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
+    val release = rootProject.extra["java_release"] as Int
+    sourceCompatibility = JavaVersion.toVersion(release)
+    targetCompatibility = JavaVersion.toVersion(release)
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release.set(25)
+    options.release.set(rootProject.extra["java_release"] as Int)
 }
