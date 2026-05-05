@@ -63,3 +63,4 @@ runs/
 !gradle-wrapper.jar
 garbagedeleter.ps1
 .gradle-user-check/
+**/.kotlin/
