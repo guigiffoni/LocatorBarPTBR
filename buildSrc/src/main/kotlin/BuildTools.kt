@@ -27,6 +27,7 @@ fun Project.versionedJavaSources(vararg roots: File) {
     val prepareSources = tasks.register("prepareVersionedJavaSources") {
         inputs.files(roots)
         outputs.dir(generatedSources)
+        dependsOn(tasks.matching { it.name == "stonecutterGenerate" })
 
         doLast {
             val outputRoot = generatedSources.get().asFile
@@ -54,6 +55,7 @@ fun Project.versionedJavaSources(vararg roots: File) {
     }
     tasks.named("compileJava") {
         dependsOn(prepareSources)
+        dependsOn(tasks.matching { it.name == "stonecutterGenerate" })
     }
 }
 
