@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[2,)"
+loaderVersion = "${neoforge_loader_range}"
 issueTrackerURL = "https://github.com/FuzjaJadrowa/LocatorBar/issues"
 license = "GPL-3.0"
 
@@ -17,14 +17,14 @@ Reworked concept of a player locator bar for Minecraft. Simple, clean bar at the
 [[dependencies.locatorbar]]
 modId = "neoforge"
 type = "required"
-versionRange = "[26,)"
+versionRange = "${neoforge_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.locatorbar]]
 modId = "minecraft"
 type = "required"
-versionRange = "[26.1,26.2)"
+versionRange = "${minecraft_targets}"
 ordering = "NONE"
 side = "BOTH"
 
