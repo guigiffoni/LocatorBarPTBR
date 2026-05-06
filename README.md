@@ -6,8 +6,7 @@
   <p><strong>Locator Bar</strong> implements the reworked concept of a player locator bar for Minecraft. Simple, clean bar at the top of your screen.</p>
 
   <p>
-    <a href="https://github.com/FuzjaJadrowa/LocatorBar/actions/workflows/fabric-build.yml"><img src="https://github.com/FuzjaJadrowa/LocatorBar/actions/workflows/fabric-build.yml/badge.svg" alt="Fabric build" /></a>
-    <a href="https://github.com/FuzjaJadrowa/LocatorBar/actions/workflows/neoforge-build.yml"><img src="https://github.com/FuzjaJadrowa/LocatorBar/actions/workflows/neoforge-build.yml/badge.svg" alt="NeoForge build" /></a>
+    <a href="https://github.com/FuzjaJadrowa/LocatorBar/actions/workflows/build-all-versions.yml"><img src="https://github.com/FuzjaJadrowa/LocatorBar/actions/workflows/build-all-versions.yml/badge.svg" alt="All versions build" /></a>
   </p>
 </div>
 
