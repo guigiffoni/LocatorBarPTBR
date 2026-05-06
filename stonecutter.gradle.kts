@@ -3,7 +3,7 @@ import org.gradle.kotlin.dsl.replace
 plugins {
     id("dev.kikugie.stonecutter")
 }
-stonecutter active "26.1-fabric"
+stonecutter active "1.21.4-neoforge"
 
 stonecutter parameters {
     swaps["mod_version"] = "\"" + property("mod.version") + "\";"

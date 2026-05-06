@@ -328,9 +328,9 @@ public final class ReworkedLocatorBarHudRenderer {
 
         String daysText = null;
         if (LocatorBarConfig.isShowDays()) {
-            //? if >=1.21.11
+            //? if >=26.1
             long days = player.level().getOverworldClockTime() / 24000L;
-            //? if <1.21.11
+            //? if <26.1
             /*long days = player.level().getDayTime() / 24000L;*/
             daysText = "Day " + days;
         }

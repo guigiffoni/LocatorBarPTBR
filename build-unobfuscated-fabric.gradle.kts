@@ -19,12 +19,15 @@ base {
 
 sourceSets {
     main {
-        java.srcDir(rootProject.file("src/common/src/main/java"))
         resources.srcDir(rootProject.file("src/common/src/main/resources"))
-        java.srcDir(rootProject.file("src/fabric/src/main/java"))
         resources.srcDir(rootProject.file("src/fabric/src/main/resources"))
     }
 }
+
+versionedJavaSources(
+    rootProject.file("src/common/src/main/java"),
+    rootProject.file("src/fabric/src/main/java")
+)
 
 repositories {
     maven("https://maven.neoforged.net/releases/")
