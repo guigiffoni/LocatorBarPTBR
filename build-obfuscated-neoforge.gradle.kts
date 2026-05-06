@@ -6,13 +6,14 @@ plugins {
 }
 
 val minecraft = stonecutter.current.version
+val minecraftTitle = mod.prop("mc_title")
 val loader = stonecutter.current.project.substringAfterLast('-')
 val javaVersion = mod.prop("java_version")
 
-version = "${mod.version}+$minecraft"
+version = "${mod.version}+$minecraftTitle"
 group = mod.group
 base {
-    archivesName.set("${mod.id}-$loader")
+    archivesName.set("${mod.name}-$loader")
 }
 
 sourceSets {
@@ -43,7 +44,6 @@ neoForge {
 val requiredJava = JavaVersion.toVersion(javaVersion)
 
 java {
-    withSourcesJar()
     targetCompatibility = requiredJava
     sourceCompatibility = requiredJava
 }

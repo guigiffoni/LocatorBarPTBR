@@ -32,6 +32,11 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Sync target properties
+        run: |
+          cp gradle/targets/26.1.properties versions/26.1-fabric/gradle.properties
+          cp gradle/targets/26.1.properties versions/26.1-neoforge/gradle.properties
+
       - name: Inspect Gradle projects
         run: ./gradlew --no-daemon projects --stacktrace
 
@@ -72,6 +77,13 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Sync target properties
+        run: |
+          VERSION="${TARGET%-*}"
+          cp "gradle/targets/${VERSION}.properties" "versions/${TARGET}/gradle.properties"
+        env:
+          TARGET: ${{ matrix.target }}
+
       - name: Switch Stonecutter target
         run: ./gradlew --no-daemon stonecutterSwitchTo${{ matrix.target }} --stacktrace
 
@@ -85,4 +97,10 @@ jobs:
           path: |
             versions/${{ matrix.target }}/build/libs/*.jar
             build/libs/**/*.jar
+            !versions/${{ matrix.target }}/build/libs/*-sources.jar
+            !versions/${{ matrix.target }}/build/libs/*-dev.jar
+            !versions/${{ matrix.target }}/build/libs/*-javadoc.jar
+            !build/libs/**/*-sources.jar
+            !build/libs/**/*-dev.jar
+            !build/libs/**/*-javadoc.jar
           if-no-files-found: warn
