@@ -2,7 +2,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
 plugins {
-    id("dev.architectury.loom") version "1.13-SNAPSHOT"
+    id("dev.architectury.loom-no-remap") version "1.14-SNAPSHOT"
 }
 
 val minecraft = stonecutter.current.version
@@ -33,35 +33,29 @@ repositories {
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftDependency")
     fun implement(dependency: String) {
-        modImplementation(dependency)
+        implementation(dependency)
     }
 
     implement("net.fabricmc:fabric-loader:${mod.dep("fabric_loader")}")
     implement("net.fabricmc.fabric-api:fabric-api:${mod.dep("fabric_api_version")}")
-    modCompileOnly("com.terraformersmc:modmenu:${mod.dep("modmenu_version")}")
-    mappings(loom.officialMojangMappings())
+    compileOnly("com.terraformersmc:modmenu:${mod.dep("modmenu_version")}")
 }
 
 val requiredJava = JavaVersion.toVersion(javaVersion)
 
 java {
+    withSourcesJar()
     targetCompatibility = requiredJava
     sourceCompatibility = requiredJava
 }
 
-tasks.remapJar {
-    inputs.file(tasks.jar.get().archiveFile)
-    archiveClassifier = null
-    dependsOn(tasks.jar)
-}
-
 tasks.jar {
-    archiveClassifier = "dev"
+    inputs.property("archivesName", base.archivesName)
 }
 
 val buildAndCollect = tasks.register<Copy>("buildAndCollect") {
     group = "build"
-    from(tasks.remapJar.get().archiveFile, tasks.remapSourcesJar.get().archiveFile)
+    from(tasks.jar.get().archiveFile)
     into(rootProject.layout.buildDirectory.file("libs/${mod.version}/$loader"))
     dependsOn("build")
 }

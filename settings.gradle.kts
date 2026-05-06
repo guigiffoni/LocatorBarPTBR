@@ -19,9 +19,10 @@ stonecutter {
         fun mc(loader: String, vararg versions: String) {
             for (version in versions) {
                 val buildscript = when {
-                    sc.eval(version, ">= 26.1") && loader == "fabric" -> "build-unobfuscated.gradle.kts"
+                    sc.eval(version, ">= 26.1") && loader == "fabric" -> "build-unobfuscated-fabric.gradle.kts"
+                    sc.eval(version, ">= 26.1") && loader == "neoforge" -> "build-unobfuscated-neoforge.gradle.kts"
                     loader == "fabric" -> "build-obfuscated-fabric.gradle.kts"
-                    loader == "neoforge" -> "build-unobfuscated-neoforge.gradle.kts"
+                    loader == "neoforge" -> "build-obfuscated-neoforge.gradle.kts"
                     else -> error("Unsupported loader: $loader")
                 }
                 version("$version-$loader", version).buildscript(buildscript)

@@ -19,8 +19,8 @@ sourceSets {
     main {
         java.srcDir(rootProject.file("src/common/src/main/java"))
         resources.srcDir(rootProject.file("src/common/src/main/resources"))
-        java.srcDir(rootProject.file("src/$loader/src/main/java"))
-        resources.srcDir(rootProject.file("src/$loader/src/main/resources"))
+        java.srcDir(rootProject.file("src/neoforge/src/main/java"))
+        resources.srcDir(rootProject.file("src/neoforge/src/main/resources"))
     }
 }
 
