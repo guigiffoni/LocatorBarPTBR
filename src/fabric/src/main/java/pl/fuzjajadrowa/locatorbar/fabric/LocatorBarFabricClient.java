@@ -5,5 +5,6 @@ import net.fabricmc.api.ClientModInitializer;
 public final class LocatorBarFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        LocatorBarFabricNetworking.initClient();
     }
 }

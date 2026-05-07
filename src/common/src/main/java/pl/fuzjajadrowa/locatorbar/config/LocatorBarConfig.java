@@ -8,6 +8,7 @@ import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.CoordinatesFormat;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.DaysDisplayOrder;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.LocatorBarOffset;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.LocatorBarStyle;
+import pl.fuzjajadrowa.locatorbar.config.LocatorBarServerConfig.ServerSettings;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -19,6 +20,7 @@ public final class LocatorBarConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_PATH = Path.of("config", "locatorbar.json");
     private static LocatorBarConfigData data = new LocatorBarConfigData();
+    private static ServerSettings serverSettings;
 
     private LocatorBarConfig() {
     }
@@ -69,7 +71,7 @@ public final class LocatorBarConfig {
     }
 
     public static LocatorBarStyle getStyle() {
-        return data.style;
+        return serverSettings == null ? data.style : serverSettings.style();
     }
 
     public static void setStyle(LocatorBarStyle style) {
@@ -105,7 +107,7 @@ public final class LocatorBarConfig {
     }
 
     public static boolean isShowCoordinates() {
-        return data.showCoordinates;
+        return serverSettings == null ? data.showCoordinates : serverSettings.showCoordinates();
     }
 
     public static void setShowCoordinates(boolean showCoordinates) {
@@ -129,7 +131,7 @@ public final class LocatorBarConfig {
     }
 
     public static boolean isShowDays() {
-        return data.showDays;
+        return serverSettings == null ? data.showDays : serverSettings.showDays();
     }
 
     public static void setShowDays(boolean showDays) {
@@ -145,7 +147,7 @@ public final class LocatorBarConfig {
     }
 
     public static boolean isShowWorldDirections() {
-        return data.showWorldDirections;
+        return serverSettings == null ? data.showWorldDirections : serverSettings.showWorldDirections();
     }
 
     public static void setShowWorldDirections(boolean showWorldDirections) {
@@ -161,7 +163,7 @@ public final class LocatorBarConfig {
     }
 
     public static boolean isShowPlayerHeads() {
-        return data.showPlayerHeads;
+        return serverSettings == null ? data.showPlayerHeads : serverSettings.showPlayerHeads();
     }
 
     public static void setShowPlayerHeads(boolean showPlayerHeads) {
@@ -185,7 +187,7 @@ public final class LocatorBarConfig {
     }
 
     public static int getMaxVisiblePlayers() {
-        return data.maxVisiblePlayers;
+        return serverSettings == null ? data.maxVisiblePlayers : serverSettings.maxVisiblePlayers();
     }
 
     public static void setMaxVisiblePlayers(int maxVisiblePlayers) {
@@ -193,7 +195,7 @@ public final class LocatorBarConfig {
     }
 
     public static boolean isShowWaypoints() {
-        return data.showWaypoints;
+        return serverSettings == null ? data.showWaypoints : serverSettings.showWaypoints();
     }
 
     public static void setShowWaypoints(boolean showWaypoints) {
@@ -209,7 +211,19 @@ public final class LocatorBarConfig {
     }
 
     public static int getMaxVisibleWaypoints() {
-        return data.maxVisibleWaypoints;
+        return serverSettings == null ? data.maxVisibleWaypoints : serverSettings.maxVisibleWaypoints();
+    }
+
+    public static boolean hasServerSettings() {
+        return serverSettings != null;
+    }
+
+    public static void applyServerSettings(ServerSettings settings) {
+        serverSettings = settings;
+    }
+
+    public static void clearServerSettings() {
+        serverSettings = null;
     }
 
     public static void setMaxVisibleWaypoints(int maxVisibleWaypoints) {

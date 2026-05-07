@@ -5,6 +5,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
 import pl.fuzjajadrowa.locatorbar.LocatorBar;
 
 import java.lang.reflect.InvocationTargetException;
@@ -12,7 +13,13 @@ import java.lang.reflect.InvocationTargetException;
 @Mod(LocatorBar.MOD_ID)
 public final class LocatorBarNeoForge {
     public LocatorBarNeoForge(IEventBus modEventBus, ModContainer modContainer) {
-        LocatorBar.init();
+        //? if >=1.21.11 {
+        LocatorBar.init(FMLEnvironment.getDist() == Dist.CLIENT);
+        //?} else {
+        /*LocatorBar.init(FMLEnvironment.dist == Dist.CLIENT);
+        *///?}
+        modEventBus.addListener(LocatorBarNeoForgeNetworking::registerPayloads);
+        NeoForge.EVENT_BUS.addListener(LocatorBarNeoForgeNetworking::onPlayerLoggedIn);
         //? if >=1.21.11 {
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
             initClient(modContainer);

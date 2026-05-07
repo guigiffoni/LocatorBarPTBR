@@ -357,6 +357,7 @@ public final class LocatorBarConfigScreen extends Screen {
     }
 
     private void updateControlStates() {
+        boolean serverControlled = LocatorBarConfig.hasServerSettings();
         boolean styleEnabled = selectedStyle != LocatorBarStyle.OFF;
         boolean classicStyle = selectedStyle == LocatorBarStyle.CLASSIC;
         boolean reworkedStyle = selectedStyle == LocatorBarStyle.REWORKED;
@@ -366,25 +367,26 @@ public final class LocatorBarConfigScreen extends Screen {
         boolean canChangeHeadSettings = styleEnabled && selectedShowPlayerHeads;
         boolean canChangeWaypoints = styleEnabled && selectedShowWaypoints;
 
+        styleButton.active = !serverControlled;
         scaleSlider.active = reworkedStyle;
         offsetButton.active = reworkedStyle;
         viewAngleSlider.active = reworkedStyle;
-        showCoordinatesButton.active = reworkedStyle;
+        showCoordinatesButton.active = reworkedStyle && !serverControlled;
         elementsOnXpBarButton.active = classicStyle;
         coordinatesFormatButton.active = canChangeCoordinatesFormat;
-        showDaysButton.active = reworkedStyle;
+        showDaysButton.active = reworkedStyle && !serverControlled;
         daysDisplayOrderButton.active = canChangeDaysOrder;
 
-        showWorldDirectionsButton.active = styleEnabled;
+        showWorldDirectionsButton.active = styleEnabled && !serverControlled;
         worldDirectionsScaleSlider.active = canChangeDirectionScale;
-        showPlayerHeadsButton.active = styleEnabled;
+        showPlayerHeadsButton.active = styleEnabled && !serverControlled;
         playerHeadsScaleSlider.active = canChangeHeadSettings;
         playerHeadOutlineButton.active = canChangeHeadSettings;
-        maxVisiblePlayersSlider.active = canChangeHeadSettings;
+        maxVisiblePlayersSlider.active = canChangeHeadSettings && !serverControlled;
 
-        showWaypointsButton.active = styleEnabled;
+        showWaypointsButton.active = styleEnabled && !serverControlled;
         waypointsScaleSlider.active = canChangeWaypoints;
-        maxVisibleWaypointsSlider.active = canChangeWaypoints;
+        maxVisibleWaypointsSlider.active = canChangeWaypoints && !serverControlled;
     }
 
     private void updatePageState() {
@@ -423,24 +425,39 @@ public final class LocatorBarConfigScreen extends Screen {
     }
 
     private void applyAndSave() {
-        LocatorBarConfig.setStyle(selectedStyle);
+        boolean serverControlled = LocatorBarConfig.hasServerSettings();
+        if (!serverControlled) {
+            LocatorBarConfig.setStyle(selectedStyle);
+        }
         LocatorBarConfig.setScale(selectedScale);
         LocatorBarConfig.setOffset(selectedOffset);
         LocatorBarConfig.setViewAngle(selectedViewAngle);
-        LocatorBarConfig.setShowCoordinates(selectedShowCoordinates);
+        if (!serverControlled) {
+            LocatorBarConfig.setShowCoordinates(selectedShowCoordinates);
+        }
         LocatorBarConfig.setElementsOnXpBar(selectedElementsOnXpBar);
         LocatorBarConfig.setCoordinatesFormat(selectedCoordinatesFormat);
-        LocatorBarConfig.setShowDays(selectedShowDays);
+        if (!serverControlled) {
+            LocatorBarConfig.setShowDays(selectedShowDays);
+        }
         LocatorBarConfig.setDaysDisplayOrder(selectedDaysDisplayOrder);
-        LocatorBarConfig.setShowWorldDirections(selectedShowWorldDirections);
+        if (!serverControlled) {
+            LocatorBarConfig.setShowWorldDirections(selectedShowWorldDirections);
+        }
         LocatorBarConfig.setWorldDirectionsScale(selectedWorldDirectionsScale);
-        LocatorBarConfig.setShowPlayerHeads(selectedShowPlayerHeads);
+        if (!serverControlled) {
+            LocatorBarConfig.setShowPlayerHeads(selectedShowPlayerHeads);
+        }
         LocatorBarConfig.setPlayerHeadsScale(selectedPlayerHeadsScale);
         LocatorBarConfig.setPlayerHeadOutline(selectedPlayerHeadOutline);
-        LocatorBarConfig.setMaxVisiblePlayers(selectedMaxVisiblePlayers);
-        LocatorBarConfig.setShowWaypoints(selectedShowWaypoints);
+        if (!serverControlled) {
+            LocatorBarConfig.setMaxVisiblePlayers(selectedMaxVisiblePlayers);
+            LocatorBarConfig.setShowWaypoints(selectedShowWaypoints);
+        }
         LocatorBarConfig.setWaypointsScale(selectedWaypointsScale);
-        LocatorBarConfig.setMaxVisibleWaypoints(selectedMaxVisibleWaypoints);
+        if (!serverControlled) {
+            LocatorBarConfig.setMaxVisibleWaypoints(selectedMaxVisibleWaypoints);
+        }
         LocatorBarConfig.save();
     }
 
