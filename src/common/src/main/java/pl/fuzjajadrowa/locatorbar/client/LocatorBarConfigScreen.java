@@ -440,9 +440,12 @@ public final class LocatorBarConfigScreen extends Screen {
                 this.list.addEntry(Component.translatable("locatorbar.config.field.max_visible_waypoints"), maxVisibleWaypointsSlider);
 
                 if (selectedStyle != LocatorBarStyle.OFF && selectedShowWaypoints) {
-                    this.list.addHeaderEntry(Component.translatable("locatorbar.config.header.waypoint_manager"));
-                    for (ManagedWaypoint waypoint : collectManagedWaypoints()) {
-                        this.list.addWaypointEntry(waypoint);
+                    List<ManagedWaypoint> waypoints = collectManagedWaypoints();
+                    if (!waypoints.isEmpty()) {
+                        this.list.addHeaderEntry(Component.translatable("locatorbar.config.header.waypoint_manager"));
+                        for (ManagedWaypoint waypoint : waypoints) {
+                            this.list.addWaypointEntry(waypoint);
+                        }
                     }
                 }
             }
@@ -482,7 +485,7 @@ public final class LocatorBarConfigScreen extends Screen {
 
         LocatorBarConfig.getWaypoints().forEach((id, config) -> {
             if (config.world.equals(currentWorld) && !seenIds.contains(id)) {
-                waypoints.add(new ManagedWaypoint(id, config.character, config.color, config.visible, config.world));
+                waypoints.add(new ManagedWaypoint(id, config.character, config.color, config.visible, config.world, -1));
                 seenIds.add(id);
             }
         });
@@ -514,8 +517,9 @@ public final class LocatorBarConfigScreen extends Screen {
         String symbol = config != null ? config.character : WaypointData.getWaypointSymbol(stack);
         int color = config != null ? config.color : (WaypointData.getCustomColor(stack) != null ? WaypointData.getCustomColor(stack) : colorFromWaypointId(waypointId));
         boolean visible = config == null ? !WaypointData.isHidden(stack) : config.visible;
+        int index = WaypointData.getWaypointIndex(stack);
 
-        waypoints.add(new ManagedWaypoint(waypointId, symbol, color, visible, currentWorld));
+        waypoints.add(new ManagedWaypoint(waypointId, symbol, color, visible, currentWorld, index));
         seenIds.add(waypointId);
     }
 
@@ -574,7 +578,7 @@ public final class LocatorBarConfigScreen extends Screen {
         updatePageState();
     }
 
-    private record ManagedWaypoint(UUID id, String symbol, int color, boolean visible, String world) {
+    private record ManagedWaypoint(UUID id, String symbol, int color, boolean visible, String world, int index) {
     }
 
     private final class ConfigList extends ContainerObjectSelectionList<ConfigList.AbstractEntry> {
@@ -711,8 +715,13 @@ public final class LocatorBarConfigScreen extends Screen {
             public WaypointEntry(ManagedWaypoint waypoint) {
                 this.waypoint = waypoint;
 
+                String initialSymbol = waypoint.symbol;
+                if ((initialSymbol == null || initialSymbol.isEmpty()) && waypoint.index > 0) {
+                    initialSymbol = Integer.toString(waypoint.index);
+                }
+
                 this.symbolBox = new EditBox(LocatorBarConfigScreen.this.font, 0, 0, 20, 20, Component.empty());
-                this.symbolBox.setValue(waypoint.symbol != null ? waypoint.symbol : "");
+                this.symbolBox.setValue(initialSymbol != null ? initialSymbol : "");
                 this.symbolBox.setMaxLength(1);
                 this.symbolBox.setResponder(value -> updateWaypoint());
 
@@ -729,11 +738,11 @@ public final class LocatorBarConfigScreen extends Screen {
                 ).bounds(0, 0, 40, 20).build();
 
                 this.deleteButton = Button.builder(
-                        Component.literal("X"),
+                        Component.translatable("locatorbar.config.button.delete"),
                         button -> {
                             deleteWaypoint();
                         }
-                ).bounds(0, 0, 20, 20).build();
+                ).bounds(0, 0, 50, 20).build();
 
                 this.children = ImmutableList.of(symbolBox, colorBox, visibilityButton, deleteButton);
             }
@@ -747,7 +756,41 @@ public final class LocatorBarConfigScreen extends Screen {
             private void deleteWaypoint() {
                 LocatorBarConfig.removeWaypointConfig(waypoint.id);
                 LocatorBarConfig.save();
+
+                Minecraft mc = Minecraft.getInstance();
+                if (mc.player != null) {
+                    Inventory inventory = mc.player.getInventory();
+                    //? if >=1.21.11 {
+                    for (ItemStack stack : inventory.getNonEquipmentItems()) {
+                        checkAndDelete(stack);
+                    }
+                    checkAndDelete(inventory.getItem(Inventory.SLOT_OFFHAND));
+                    //?} else {
+                    /*for (ItemStack stack : inventory.items) {
+                        checkAndDelete(stack);
+                    }
+                    for (ItemStack stack : inventory.offhand) {
+                        checkAndDelete(stack);
+                    }
+                    *///?}
+                }
+
                 LocatorBarConfigScreen.this.updatePageState();
+            }
+
+            private void checkAndDelete(ItemStack stack) {
+                if (stack.isEmpty()) {
+                    return;
+                }
+                UUID id = WaypointData.getWaypointId(stack);
+                if (id != null && id.equals(waypoint.id)) {
+                    stack.remove(DataComponents.LODESTONE_TRACKER);
+                    //? if >=1.21.11 {
+                    stack.remove(DataComponents.CUSTOM_DATA);
+                    //?} else {
+                    /*stack.remove(DataComponents.CUSTOM_DATA);*/
+                    //?}
+                }
             }
 
             private void updateWaypoint() {
@@ -767,7 +810,11 @@ public final class LocatorBarConfigScreen extends Screen {
             @Override
             protected void renderEntry(GuiGraphicsExtractor guiGraphics, int top, int height, int mouseX, int mouseY, float partialTick) {
                 int centerX = LocatorBarConfigScreen.this.width / 2;
-                int previewX = centerX - 138;
+
+                int totalWidth = 220;
+                int startX = centerX - (totalWidth / 2);
+
+                int previewX = startX;
                 int previewSize = 20;
                 int previewY = top + (height - previewSize) / 2;
 
@@ -780,7 +827,11 @@ public final class LocatorBarConfigScreen extends Screen {
                 }
                 String symbol = symbolBox.getValue();
                 if (symbol.isEmpty()) {
-                    symbol = waypoint.symbol;
+                    if (waypoint.symbol != null && !waypoint.symbol.isEmpty()) {
+                        symbol = waypoint.symbol;
+                    } else if (waypoint.index > 0) {
+                        symbol = Integer.toString(waypoint.index);
+                    }
                 }
 
                 RenderCompat.push(guiGraphics);
@@ -815,28 +866,32 @@ public final class LocatorBarConfigScreen extends Screen {
                 }
                 RenderCompat.pop(guiGraphics);
 
-                symbolBox.setX(centerX - 100);
+                int currentX = startX + 20 + 10;
+                symbolBox.setX(currentX);
                 symbolBox.setY(top);
                 //? if >=26.1
                 symbolBox.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
                 //? if <26.1
                 /*symbolBox.render(guiGraphics, mouseX, mouseY, partialTick);*/
 
-                colorBox.setX(centerX - 70);
+                currentX += 20 + 10;
+                colorBox.setX(currentX);
                 colorBox.setY(top);
                 //? if >=26.1
                 colorBox.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
                 //? if <26.1
                 /*colorBox.render(guiGraphics, mouseX, mouseY, partialTick);*/
 
-                visibilityButton.setX(centerX - 10);
+                currentX += 50 + 10;
+                visibilityButton.setX(currentX);
                 visibilityButton.setY(top);
                 //? if >=26.1
                 visibilityButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
                 //? if <26.1
                 /*visibilityButton.render(guiGraphics, mouseX, mouseY, partialTick);*/
 
-                deleteButton.setX(centerX + 35);
+                currentX += 40 + 10;
+                deleteButton.setX(currentX);
                 deleteButton.setY(top);
                 //? if >=26.1
                 deleteButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
