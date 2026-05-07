@@ -1,50 +1,44 @@
 package pl.fuzjajadrowa.locatorbar.neoforge;
 
 import net.neoforged.bus.api.IEventBus;
-//? if >=26.1 {
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.api.distmarker.Dist;
-//?}
-import net.neoforged.neoforge.client.event.RenderGuiEvent;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
-import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import pl.fuzjajadrowa.locatorbar.LocatorBar;
-import pl.fuzjajadrowa.locatorbar.client.LocatorBarConfigScreen;
-import pl.fuzjajadrowa.locatorbar.client.LocatorBarHudRenderer;
+
+import java.lang.reflect.InvocationTargetException;
 
 @Mod(LocatorBar.MOD_ID)
 public final class LocatorBarNeoForge {
     public LocatorBarNeoForge(IEventBus modEventBus, ModContainer modContainer) {
         LocatorBar.init();
-        //? if >=26.1 {
+        //? if >=1.21.11 {
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
-            ClientHooks.init(modContainer);
+            initClient(modContainer);
         }
         //?} else {
-        /*modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, parentScreen) -> new LocatorBarConfigScreen(parentScreen));
-        NeoForge.EVENT_BUS.addListener(this::onRenderGui);
+        /*if (FMLEnvironment.dist == Dist.CLIENT) {
+            initClient(modContainer);
+        }
         *///?}
     }
 
-    //? if >=26.1 {
-    private static final class ClientHooks {
-        private ClientHooks() {
-        }
-
-        private static void init(ModContainer modContainer) {
-            modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, parentScreen) -> new LocatorBarConfigScreen(parentScreen));
-            NeoForge.EVENT_BUS.addListener(ClientHooks::onRenderGui);
-        }
-
-        private static void onRenderGui(RenderGuiEvent.Post event) {
-            LocatorBarHudRenderer.render(event.getGuiGraphics());
+    private static void initClient(ModContainer modContainer) {
+        try {
+            Class<?> clientHooks = Class.forName("pl.fuzjajadrowa.locatorbar.neoforge.LocatorBarNeoForgeClient");
+            clientHooks.getMethod("init", ModContainer.class).invoke(null, modContainer);
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException exception) {
+            throw new IllegalStateException("Failed to initialize Locator Bar client hooks", exception);
+        } catch (InvocationTargetException exception) {
+            Throwable cause = exception.getCause();
+            if (cause instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            if (cause instanceof Error error) {
+                throw error;
+            }
+            throw new IllegalStateException("Failed to initialize Locator Bar client hooks", cause);
         }
     }
-    //?} else {
-    /*private void onRenderGui(RenderGuiEvent.Post event) {
-        LocatorBarHudRenderer.render(event.getGuiGraphics());
-    }
-    *///?}
 }

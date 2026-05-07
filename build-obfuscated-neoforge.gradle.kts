@@ -5,7 +5,6 @@ plugins {
     id("net.neoforged.moddev") version "2.0.141"
 }
 
-val minecraft = stonecutter.current.version
 val minecraftTitle = mod.prop("mc_title")
 val loader = stonecutter.current.project.substringAfterLast('-')
 val javaVersion = mod.prop("java_version")
@@ -33,6 +32,8 @@ repositories {
     maven("https://maven.terraformersmc.com/")
 }
 
+val projectName = project.name
+
 neoForge {
     version = mod.dep("neoforge_loader")
 
@@ -44,8 +45,12 @@ neoForge {
 
     runs {
         register("client") {
-            gameDirectory = rootProject.file("run")
+            gameDirectory = rootProject.file("run/$projectName/client")
             client()
+        }
+        register("server") {
+            gameDirectory = rootProject.file("run/$projectName/server")
+            server()
         }
     }
 }
@@ -74,9 +79,14 @@ if (stonecutter.current.isActive) {
         dependsOn(buildAndCollect)
     }
 
-    rootProject.tasks.register("runActive") {
+    rootProject.tasks.register("testClient") {
         group = "project"
         dependsOn(tasks.named("clientRun"))
+    }
+
+    rootProject.tasks.register("testServer") {
+        group = "project"
+        dependsOn(tasks.named("serverRun"))
     }
 }
 

@@ -19,7 +19,7 @@
       "pl.fuzjajadrowa.locatorbar.fabric.LocatorBarFabric"
     ],
     "client": [
-      "pl.fuzjajadrowa.locatorbar.fabric.LocatorBarFabric"
+      "pl.fuzjajadrowa.locatorbar.fabric.LocatorBarFabricClient"
     ],
     "modmenu": [
       "pl.fuzjajadrowa.locatorbar.fabric.LocatorBarModMenuIntegration"

@@ -64,3 +64,4 @@ runs/
 garbagedeleter.ps1
 .gradle-user-check/
 **/.kotlin/
+run-server/

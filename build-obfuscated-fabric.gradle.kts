@@ -5,7 +5,6 @@ plugins {
     id("dev.architectury.loom") version "1.13-SNAPSHOT"
 }
 
-val minecraft = stonecutter.current.version
 val minecraftTitle = mod.prop("mc_title")
 val loader = stonecutter.current.project.substringAfterLast('-')
 val minecraftDependency = mod.dep("minecraft.fabric")
@@ -76,9 +75,25 @@ if (stonecutter.current.isActive) {
         dependsOn(buildAndCollect)
     }
 
-    rootProject.tasks.register("runActive") {
+    rootProject.tasks.register("testClient") {
         group = "project"
         dependsOn(tasks.named("runClient"))
+    }
+
+    rootProject.tasks.register("testServer") {
+        group = "project"
+        dependsOn(tasks.named("runServer"))
+    }
+}
+
+loom {
+    runs {
+        named("client") {
+            runDir = rootProject.file("run/${project.name}/client").path
+        }
+        named("server") {
+            runDir = rootProject.file("run/${project.name}/server").path
+        }
     }
 }
 
