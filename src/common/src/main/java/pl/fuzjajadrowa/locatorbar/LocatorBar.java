@@ -12,7 +12,8 @@ public final class LocatorBar {
     public static void init(boolean loadClientConfig) {
         if (loadClientConfig) {
             LocatorBarConfig.load();
+        } else {
+            LocatorBarServerConfig.load();
         }
-        LocatorBarServerConfig.load();
     }
 }

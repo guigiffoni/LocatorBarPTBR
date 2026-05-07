@@ -21,8 +21,9 @@ public final class LocatorBarNeoForgeNetworking {
     }
 
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
-            PacketDistributor.sendToPlayer(player, new ServerConfigPayload(LocatorBarServerConfig.get()));
+        var settings = LocatorBarServerConfig.get();
+        if (settings != null && event.getEntity() instanceof ServerPlayer player) {
+            PacketDistributor.sendToPlayer(player, new ServerConfigPayload(settings));
         }
     }
 }

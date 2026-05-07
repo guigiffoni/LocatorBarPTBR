@@ -12,13 +12,14 @@ import java.util.Properties;
 
 public final class LocatorBarServerConfig {
     private static final Path CONFIG_PATH = Path.of("config", "locatorbar-server.toml");
-    private static ServerSettings data = ServerSettings.defaults();
+    private static ServerSettings data = null;
 
     private LocatorBarServerConfig() {
     }
 
     public static void load() {
         if (!Files.exists(CONFIG_PATH)) {
+            data = ServerSettings.defaults();
             save();
             return;
         }
@@ -43,6 +44,10 @@ public final class LocatorBarServerConfig {
     }
 
     public static void save() {
+        if (data == null) {
+            return;
+        }
+
         try {
             Files.createDirectories(CONFIG_PATH.getParent());
             try (Writer writer = Files.newBufferedWriter(CONFIG_PATH)) {

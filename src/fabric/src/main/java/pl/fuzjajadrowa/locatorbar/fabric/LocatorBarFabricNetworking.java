@@ -20,8 +20,9 @@ public final class LocatorBarFabricNetworking {
         /*PayloadTypeRegistry.playS2C().register(ServerConfigPayload.TYPE, ServerConfigPayload.STREAM_CODEC);
         *///?}
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            if (ServerPlayNetworking.canSend(handler, ServerConfigPayload.TYPE)) {
-                sender.sendPacket(new ServerConfigPayload(LocatorBarServerConfig.get()));
+            var settings = LocatorBarServerConfig.get();
+            if (settings != null && ServerPlayNetworking.canSend(handler, ServerConfigPayload.TYPE)) {
+                sender.sendPacket(new ServerConfigPayload(settings));
             }
         });
     }
