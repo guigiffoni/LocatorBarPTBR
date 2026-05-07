@@ -167,6 +167,35 @@ public final class WaypointData {
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
+    public static void unlinkWaypoint(Player player, UUID waypointId) {
+        Inventory inventory = player.getInventory();
+        //? if >=1.21.11 {
+        for (ItemStack stack : inventory.getNonEquipmentItems()) {
+            unlinkIfMatches(stack, waypointId);
+        }
+        unlinkIfMatches(inventory.getItem(Inventory.SLOT_OFFHAND), waypointId);
+        //?} else {
+        /*for (ItemStack stack : inventory.items) {
+            unlinkIfMatches(stack, waypointId);
+        }
+        for (ItemStack stack : inventory.offhand) {
+            unlinkIfMatches(stack, waypointId);
+        }
+        *///?}
+    }
+
+    private static void unlinkIfMatches(ItemStack stack, UUID waypointId) {
+        if (stack.isEmpty()) {
+            return;
+        }
+
+        UUID id = getWaypointId(stack);
+        if (id != null && id.equals(waypointId)) {
+            stack.remove(DataComponents.LODESTONE_TRACKER);
+            stack.remove(DataComponents.CUSTOM_DATA);
+        }
+    }
+
     private static int findHighestWaypointIndex(Player player) {
         int highest = 0;
         UUID owner = player.getUUID();

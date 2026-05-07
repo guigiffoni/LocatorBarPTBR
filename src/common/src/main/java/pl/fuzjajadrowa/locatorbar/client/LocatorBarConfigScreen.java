@@ -754,43 +754,15 @@ public final class LocatorBarConfigScreen extends Screen {
             }
 
             private void deleteWaypoint() {
+                Minecraft mc = Minecraft.getInstance();
+                if (mc.player != null) {
+                    WaypointData.unlinkWaypoint(mc.player, waypoint.id);
+                }
+
                 LocatorBarConfig.removeWaypointConfig(waypoint.id);
                 LocatorBarConfig.save();
 
-                Minecraft mc = Minecraft.getInstance();
-                if (mc.player != null) {
-                    Inventory inventory = mc.player.getInventory();
-                    //? if >=1.21.11 {
-                    for (ItemStack stack : inventory.getNonEquipmentItems()) {
-                        checkAndDelete(stack);
-                    }
-                    checkAndDelete(inventory.getItem(Inventory.SLOT_OFFHAND));
-                    //?} else {
-                    /*for (ItemStack stack : inventory.items) {
-                        checkAndDelete(stack);
-                    }
-                    for (ItemStack stack : inventory.offhand) {
-                        checkAndDelete(stack);
-                    }
-                    *///?}
-                }
-
                 LocatorBarConfigScreen.this.updatePageState();
-            }
-
-            private void checkAndDelete(ItemStack stack) {
-                if (stack.isEmpty()) {
-                    return;
-                }
-                UUID id = WaypointData.getWaypointId(stack);
-                if (id != null && id.equals(waypoint.id)) {
-                    stack.remove(DataComponents.LODESTONE_TRACKER);
-                    //? if >=1.21.11 {
-                    stack.remove(DataComponents.CUSTOM_DATA);
-                    //?} else {
-                    /*stack.remove(DataComponents.CUSTOM_DATA);*/
-                    //?}
-                }
             }
 
             private void updateWaypoint() {
