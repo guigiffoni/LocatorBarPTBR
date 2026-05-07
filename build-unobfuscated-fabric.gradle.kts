@@ -82,10 +82,14 @@ if (stonecutter.current.isActive) {
 loom {
     runs {
         named("client") {
-            runDir = rootProject.file("run/${project.name}/client").path
+            runDir = project.projectDir.toPath()
+                .relativize(rootProject.file("run/${project.name}/client").toPath())
+                .toString()
         }
         named("server") {
-            runDir = rootProject.file("run/${project.name}/server").path
+            runDir = project.projectDir.toPath()
+                .relativize(rootProject.file("run/${project.name}/server").toPath())
+                .toString()
         }
     }
 }
