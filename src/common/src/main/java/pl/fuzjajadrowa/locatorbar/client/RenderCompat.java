@@ -106,17 +106,8 @@ final class RenderCompat {
         //? if >=1.21.11 {
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, u, v, width, height, regionWidth, regionHeight, textureWidth, textureHeight, tint);
         //?} elif >=1.21.4 {
-        /*float red = ((tint >> 16) & 0xFF) / 255.0F;
-        float green = ((tint >> 8) & 0xFF) / 255.0F;
-        float blue = (tint & 0xFF) / 255.0F;
-        float alpha = ((tint >> 24) & 0xFF) / 255.0F;
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShaderColor(red, green, blue, alpha);
-        guiGraphics.blit(RenderType::guiTextured, texture, x, y, u, v, width, height, regionWidth, regionHeight, textureWidth, textureHeight);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.disableBlend();
-        *///?} else {
+        /*guiGraphics.blit(RenderType::guiTextured, texture, x, y, u, v, width, height, regionWidth, regionHeight, textureWidth, textureHeight, tint);*/
+        //?} else {
         /*float red = ((tint >> 16) & 0xFF) / 255.0F;
         float green = ((tint >> 8) & 0xFF) / 255.0F;
         float blue = (tint & 0xFF) / 255.0F;

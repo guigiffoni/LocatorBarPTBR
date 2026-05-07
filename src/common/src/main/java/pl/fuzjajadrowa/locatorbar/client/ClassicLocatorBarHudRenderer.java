@@ -67,7 +67,7 @@ public final class ClassicLocatorBarHudRenderer {
     private static final float PLAYER_MIN_ALPHA = 0.010F;
     private static final int WAYPOINT_TEXTURE_SIZE = 36;
     private static final int BASE_WAYPOINT_MARKER_SIZE = 10;
-    private static final float WAYPOINT_TEXT_SCALE = 0.75F;
+    private static final float WAYPOINT_TEXT_SCALE = 0.65F;
     private static final int WAYPOINT_Y_OFFSET = 2;
 
     private ClassicLocatorBarHudRenderer() {

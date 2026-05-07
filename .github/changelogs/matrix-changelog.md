@@ -10,6 +10,7 @@ First normal release with fixed multiple bugs.
 - [1.21.11, 26.1.x] Hidden default Minecraft locator bar.
 ## Changed
 - Config screen now hides unavailable options for chosen style.
+- Changed classic locator bar texture color.
 - Redesigned project to stonecutter multiversion support using kotlin code and multiple Gradle DSL buildscripts.
 ## Fixed
 - Fixed [#1](https://github.com/FuzjaJadrowa/LocatorBar/issues/1) issue.
