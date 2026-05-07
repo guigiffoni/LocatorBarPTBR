@@ -28,6 +28,7 @@
   "locatorbar.config.field.scale": "Locator bar scale",
   "locatorbar.config.field.offset": "Locator bar offset",
   "locatorbar.config.field.view_angle": "View angle",
+  "locatorbar.config.field.elements_on_xp_bar": "Elements on XP bar",
   "locatorbar.config.field.show_coordinates": "Show coordinates",
   "locatorbar.config.field.coordinates_format": "Coordinates format",
   "locatorbar.config.field.show_days": "Show days",

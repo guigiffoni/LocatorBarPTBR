@@ -112,6 +112,14 @@ public final class LocatorBarConfig {
         data.showCoordinates = showCoordinates;
     }
 
+    public static boolean isElementsOnXpBar() {
+        return data.elementsOnXpBar;
+    }
+
+    public static void setElementsOnXpBar(boolean elementsOnXpBar) {
+        data.elementsOnXpBar = elementsOnXpBar;
+    }
+
     public static CoordinatesFormat getCoordinatesFormat() {
         return data.coordinatesFormat;
     }
@@ -231,6 +239,9 @@ public final class LocatorBarConfig {
 
         @SerializedName("showCoordinates")
         private boolean showCoordinates = true;
+
+        @SerializedName("elementsOnXpBar")
+        private boolean elementsOnXpBar = true;
 
         @SerializedName("coordinatesFormat")
         private CoordinatesFormat coordinatesFormat = CoordinatesFormat.XYZ;

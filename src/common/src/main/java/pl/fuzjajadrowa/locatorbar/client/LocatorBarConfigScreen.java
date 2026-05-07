@@ -49,6 +49,7 @@ public final class LocatorBarConfigScreen extends Screen {
     private LocatorBarOffset selectedOffset;
     private float selectedViewAngle;
     private boolean selectedShowCoordinates;
+    private boolean selectedElementsOnXpBar;
     private CoordinatesFormat selectedCoordinatesFormat;
     private boolean selectedShowDays;
     private DaysDisplayOrder selectedDaysDisplayOrder;
@@ -70,6 +71,7 @@ public final class LocatorBarConfigScreen extends Screen {
     private Button styleButton;
     private Button offsetButton;
     private Button showCoordinatesButton;
+    private Button elementsOnXpBarButton;
     private Button coordinatesFormatButton;
     private Button showDaysButton;
     private Button daysDisplayOrderButton;
@@ -96,6 +98,7 @@ public final class LocatorBarConfigScreen extends Screen {
         this.selectedOffset = LocatorBarConfig.getOffset();
         this.selectedViewAngle = LocatorBarConfig.getViewAngle();
         this.selectedShowCoordinates = LocatorBarConfig.isShowCoordinates();
+        this.selectedElementsOnXpBar = LocatorBarConfig.isElementsOnXpBar();
         this.selectedCoordinatesFormat = LocatorBarConfig.getCoordinatesFormat();
         this.selectedShowDays = LocatorBarConfig.isShowDays();
         this.selectedDaysDisplayOrder = LocatorBarConfig.getDaysDisplayOrder();
@@ -138,6 +141,7 @@ public final class LocatorBarConfigScreen extends Screen {
                 value -> Integer.toString(Math.round(value)) + "\u00b0");
 
         showCoordinatesButton = Button.builder(showCoordinatesButtonText(), button -> toggleShowCoordinates()).bounds(0, 0, 120, 20).build();
+        elementsOnXpBarButton = Button.builder(elementsOnXpBarButtonText(), button -> toggleElementsOnXpBar()).bounds(0, 0, 120, 20).build();
         coordinatesFormatButton = Button.builder(coordinatesFormatButtonText(), button -> cycleCoordinatesFormat()).bounds(0, 0, 120, 20).build();
         showDaysButton = Button.builder(showDaysButtonText(), button -> toggleShowDays()).bounds(0, 0, 120, 20).build();
         daysDisplayOrderButton = Button.builder(daysDisplayOrderButtonText(), button -> cycleDaysDisplayOrder()).bounds(0, 0, 120, 20).build();
@@ -242,6 +246,7 @@ public final class LocatorBarConfigScreen extends Screen {
         selectedStyle = selectedStyle.next();
         styleButton.setMessage(styleButtonText());
         applyAndSave();
+        updatePageState();
         updateControlStates();
     }
 
@@ -268,6 +273,17 @@ public final class LocatorBarConfigScreen extends Screen {
 
     private Component showCoordinatesButtonText() {
         return Component.translatable(selectedShowCoordinates ? "locatorbar.option.on" : "locatorbar.option.off");
+    }
+
+    private void toggleElementsOnXpBar() {
+        selectedElementsOnXpBar = !selectedElementsOnXpBar;
+        elementsOnXpBarButton.setMessage(elementsOnXpBarButtonText());
+        applyAndSave();
+        updateControlStates();
+    }
+
+    private Component elementsOnXpBarButtonText() {
+        return Component.translatable(selectedElementsOnXpBar ? "locatorbar.option.on" : "locatorbar.option.off");
     }
 
     private void cycleCoordinatesFormat() {
@@ -347,18 +363,20 @@ public final class LocatorBarConfigScreen extends Screen {
     private void updateControlStates() {
         boolean styleEnabled = selectedStyle != LocatorBarStyle.OFF;
         boolean classicStyle = selectedStyle == LocatorBarStyle.CLASSIC;
+        boolean reworkedStyle = selectedStyle == LocatorBarStyle.REWORKED;
         boolean canChangeCoordinatesFormat = styleEnabled && !classicStyle && selectedShowCoordinates;
         boolean canChangeDaysOrder = styleEnabled && !classicStyle && selectedShowCoordinates && selectedShowDays;
         boolean canChangeDirectionScale = styleEnabled && selectedShowWorldDirections;
         boolean canChangeHeadSettings = styleEnabled && selectedShowPlayerHeads;
         boolean canChangeWaypoints = styleEnabled && selectedShowWaypoints;
 
-        scaleSlider.active = styleEnabled && !classicStyle;
-        offsetButton.active = styleEnabled && !classicStyle;
-        viewAngleSlider.active = styleEnabled && !classicStyle;
-        showCoordinatesButton.active = styleEnabled && !classicStyle;
+        scaleSlider.active = reworkedStyle;
+        offsetButton.active = reworkedStyle;
+        viewAngleSlider.active = reworkedStyle;
+        showCoordinatesButton.active = reworkedStyle;
+        elementsOnXpBarButton.active = classicStyle;
         coordinatesFormatButton.active = canChangeCoordinatesFormat;
-        showDaysButton.active = styleEnabled && !classicStyle;
+        showDaysButton.active = reworkedStyle;
         daysDisplayOrderButton.active = canChangeDaysOrder;
 
         showWorldDirectionsButton.active = styleEnabled;
@@ -379,13 +397,17 @@ public final class LocatorBarConfigScreen extends Screen {
 
             if (page == 0) {
                 this.list.addEntry(Component.translatable("locatorbar.config.field.style"), styleButton);
-                this.list.addEntry(Component.translatable("locatorbar.config.field.scale"), scaleSlider);
-                this.list.addEntry(Component.translatable("locatorbar.config.field.offset"), offsetButton);
-                this.list.addEntry(Component.translatable("locatorbar.config.field.view_angle"), viewAngleSlider);
-                this.list.addEntry(Component.translatable("locatorbar.config.field.show_coordinates"), showCoordinatesButton);
-                this.list.addEntry(Component.translatable("locatorbar.config.field.coordinates_format"), coordinatesFormatButton);
-                this.list.addEntry(Component.translatable("locatorbar.config.field.show_days"), showDaysButton);
-                this.list.addEntry(Component.translatable("locatorbar.config.field.days_display_order"), daysDisplayOrderButton);
+                if (selectedStyle == LocatorBarStyle.REWORKED) {
+                    this.list.addEntry(Component.translatable("locatorbar.config.field.scale"), scaleSlider);
+                    this.list.addEntry(Component.translatable("locatorbar.config.field.offset"), offsetButton);
+                    this.list.addEntry(Component.translatable("locatorbar.config.field.view_angle"), viewAngleSlider);
+                    this.list.addEntry(Component.translatable("locatorbar.config.field.show_coordinates"), showCoordinatesButton);
+                    this.list.addEntry(Component.translatable("locatorbar.config.field.coordinates_format"), coordinatesFormatButton);
+                    this.list.addEntry(Component.translatable("locatorbar.config.field.show_days"), showDaysButton);
+                    this.list.addEntry(Component.translatable("locatorbar.config.field.days_display_order"), daysDisplayOrderButton);
+                } else if (selectedStyle == LocatorBarStyle.CLASSIC) {
+                    this.list.addEntry(Component.translatable("locatorbar.config.field.elements_on_xp_bar"), elementsOnXpBarButton);
+                }
             } else if (page == 1) {
                 this.list.addEntry(Component.translatable("locatorbar.config.field.show_world_directions"), showWorldDirectionsButton);
                 this.list.addEntry(Component.translatable("locatorbar.config.field.directions_size"), worldDirectionsScaleSlider);
@@ -410,6 +432,7 @@ public final class LocatorBarConfigScreen extends Screen {
         LocatorBarConfig.setOffset(selectedOffset);
         LocatorBarConfig.setViewAngle(selectedViewAngle);
         LocatorBarConfig.setShowCoordinates(selectedShowCoordinates);
+        LocatorBarConfig.setElementsOnXpBar(selectedElementsOnXpBar);
         LocatorBarConfig.setCoordinatesFormat(selectedCoordinatesFormat);
         LocatorBarConfig.setShowDays(selectedShowDays);
         LocatorBarConfig.setDaysDisplayOrder(selectedDaysDisplayOrder);

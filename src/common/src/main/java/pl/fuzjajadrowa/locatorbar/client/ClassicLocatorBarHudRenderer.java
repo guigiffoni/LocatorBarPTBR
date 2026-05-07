@@ -111,6 +111,10 @@ public final class ClassicLocatorBarHudRenderer {
             return;
         }
         boolean vanillaExperienceBarVisible = isVanillaExperienceBarVisible(minecraft, player);
+        boolean elementsOnXpBar = LocatorBarConfig.isElementsOnXpBar();
+        if (!elementsOnXpBar && ClassicExperienceBarState.shouldShowVanillaExperienceBar(minecraft, player)) {
+            return;
+        }
 
         float yaw = wrapTo180(player.getYRot());
         float centerX = BAR_TEXTURE_WIDTH / 2.0F;
@@ -128,7 +132,7 @@ public final class ClassicLocatorBarHudRenderer {
         RenderCompat.push(guiGraphics);
         RenderCompat.translate(guiGraphics, x, y);
 
-        if (!vanillaExperienceBarVisible) {
+        if (!vanillaExperienceBarVisible || !elementsOnXpBar) {
             RenderCompat.blit(
                     guiGraphics,
                     CLASSIC_LOCATOR_BAR_BACKGROUND,

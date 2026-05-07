@@ -36,6 +36,12 @@ repositories {
 neoForge {
     version = mod.dep("neoforge_loader")
 
+    mods {
+        register(mod.id) {
+            sourceSet(sourceSets.main.get())
+        }
+    }
+
     runs {
         register("client") {
             gameDirectory = rootProject.file("run")
