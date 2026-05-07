@@ -197,8 +197,6 @@ public final class LocatorBarConfigScreen extends Screen {
     //? if >=26.1 {
     @Override
     public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.extractTransparentBackground(guiGraphics);
-
         super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
 
         renderHeader(guiGraphics);
@@ -206,8 +204,6 @@ public final class LocatorBarConfigScreen extends Screen {
     //?} elif >=1.21.11 {
     /*@Override
     public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderTransparentBackground(guiGraphics);
-
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         renderHeader(guiGraphics);

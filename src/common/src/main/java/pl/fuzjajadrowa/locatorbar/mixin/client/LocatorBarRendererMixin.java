@@ -11,6 +11,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Pseudo
 @Mixin(targets = "net.minecraft.client.gui.contextualbar.LocatorBarRenderer")
 public abstract class LocatorBarRendererMixin {
+    //? if >=26.1 {
+    @Inject(method = "extractBackground", at = @At("HEAD"), cancellable = true)
+    private void locatorbar$hideVanillaLocatorBarBackground(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        ci.cancel();
+    }
+
+    @Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true)
+    private void locatorbar$hideVanillaLocatorBar(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        ci.cancel();
+    }
+    //?} else {
     @Inject(method = "renderBackground", at = @At("HEAD"), cancellable = true)
     private void locatorbar$hideVanillaLocatorBarBackground(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         ci.cancel();
@@ -20,4 +31,5 @@ public abstract class LocatorBarRendererMixin {
     private void locatorbar$hideVanillaLocatorBar(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         ci.cancel();
     }
+    //?}
 }

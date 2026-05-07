@@ -19,6 +19,21 @@ import pl.fuzjajadrowa.locatorbar.client.ClassicExperienceBarState;
 *///?}
 public abstract class ExperienceBarMixin {
     //? if >=1.21.11 {
+    //? if >=26.1 {
+    @Inject(method = "extractBackground", at = @At("HEAD"), cancellable = true)
+    private void locatorbar$hideExperienceBarBackground(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (ClassicExperienceBarState.shouldHideVanillaExperienceBar(Minecraft.getInstance())) {
+            ci.cancel();
+        }
+    }
+
+    @Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true)
+    private void locatorbar$hideExperienceBar(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (ClassicExperienceBarState.shouldHideVanillaExperienceBar(Minecraft.getInstance())) {
+            ci.cancel();
+        }
+    }
+    //?} else {
     @Inject(method = "renderBackground", at = @At("HEAD"), cancellable = true)
     private void locatorbar$hideExperienceBarBackground(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (ClassicExperienceBarState.shouldHideVanillaExperienceBar(Minecraft.getInstance())) {
@@ -32,6 +47,7 @@ public abstract class ExperienceBarMixin {
             ci.cancel();
         }
     }
+    //?}
     //?} else {
     /*@Inject(method = "renderExperienceBar", at = @At("HEAD"), cancellable = true)
     private void locatorbar$hideExperienceBar(GuiGraphicsExtractor guiGraphics, int y, CallbackInfo ci) {
