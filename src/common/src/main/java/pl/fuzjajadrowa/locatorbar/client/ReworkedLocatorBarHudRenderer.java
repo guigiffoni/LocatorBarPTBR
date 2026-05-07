@@ -419,13 +419,23 @@ public final class ReworkedLocatorBarHudRenderer {
             waypointId = UUID.nameUUIDFromBytes(fallbackSeed.getBytes(StandardCharsets.UTF_8));
         }
 
-        int index = WaypointData.getWaypointIndex(stack);
-        if (WaypointData.isHidden(stack)) {
+        LocatorBarConfig.WaypointConfig config = LocatorBarConfig.getWaypointConfig(waypointId);
+        boolean visible = config == null ? !WaypointData.isHidden(stack) : config.visible;
+        if (!visible) {
             return;
         }
-        Integer customColor = WaypointData.getCustomColor(stack);
-        int color = customColor == null ? colorFromWaypointId(waypointId) : customColor;
-        String symbol = WaypointData.getWaypointSymbol(stack);
+
+        int index = WaypointData.getWaypointIndex(stack);
+        int color;
+        if (config != null) {
+            color = config.color;
+        } else {
+            Integer customColor = WaypointData.getCustomColor(stack);
+            color = customColor == null ? colorFromWaypointId(waypointId) : customColor;
+        }
+
+        String symbol = config != null ? config.character : WaypointData.getWaypointSymbol(stack);
+
         float directionYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
         markers.add(new WaypointMarker(waypointId, wrapTo180(directionYaw), color, index, symbol));
     }

@@ -17,12 +17,33 @@ import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.DaysDisplayOrder;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.LocatorBarOffset;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.LocatorBarStyle;
 
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.LodestoneTracker;
+import pl.fuzjajadrowa.locatorbar.LocatorBar;
+import pl.fuzjajadrowa.locatorbar.config.LocatorBarConfig;
+import pl.fuzjajadrowa.locatorbar.config.LocatorBarConfig.WaypointConfig;
+import pl.fuzjajadrowa.locatorbar.waypoint.WaypointData;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class LocatorBarConfigScreen extends Screen {
+    private static final Identifier WAYPOINT_TEXTURE = Identifier.fromNamespaceAndPath(
+            LocatorBar.MOD_ID,
+            "textures/gui/waypoint.png"
+    );
     private static final int TOTAL_PAGES = 3;
     private static final float SCALE_MIN = 0.5F;
     private static final float SCALE_MAX = 2.0F;
@@ -417,11 +438,92 @@ public final class LocatorBarConfigScreen extends Screen {
                 this.list.addEntry(Component.translatable("locatorbar.config.field.show_waypoints"), showWaypointsButton);
                 this.list.addEntry(Component.translatable("locatorbar.config.field.waypoints_size"), waypointsScaleSlider);
                 this.list.addEntry(Component.translatable("locatorbar.config.field.max_visible_waypoints"), maxVisibleWaypointsSlider);
+
+                if (selectedStyle != LocatorBarStyle.OFF && selectedShowWaypoints) {
+                    for (ManagedWaypoint waypoint : collectManagedWaypoints()) {
+                        this.list.addWaypointEntry(waypoint);
+                    }
+                }
             }
         }
 
         previousPageButton.active = page > 0;
         nextPageButton.active = page < TOTAL_PAGES - 1;
+    }
+
+    private List<ManagedWaypoint> collectManagedWaypoints() {
+        List<ManagedWaypoint> waypoints = new ArrayList<>();
+        Set<UUID> seenIds = new HashSet<>();
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) {
+            return waypoints;
+        }
+
+        String currentWorld = mc.level.dimension().identifier().toString();
+
+        Inventory inventory = mc.player.getInventory();
+        //? if >=1.21.11 {
+        for (ItemStack stack : inventory.getNonEquipmentItems()) {
+            addManagedWaypoint(waypoints, seenIds, stack, currentWorld);
+        }
+        ItemStack offhand = inventory.getItem(Inventory.SLOT_OFFHAND);
+        if (!offhand.isEmpty()) {
+            addManagedWaypoint(waypoints, seenIds, offhand, currentWorld);
+        }
+        //?} else {
+        /*for (ItemStack stack : inventory.items) {
+            addManagedWaypoint(waypoints, seenIds, stack, currentWorld);
+        }
+        for (ItemStack stack : inventory.offhand) {
+            addManagedWaypoint(waypoints, seenIds, stack, currentWorld);
+        }
+        *///?}
+
+        LocatorBarConfig.getWaypoints().forEach((id, config) -> {
+            if (config.world.equals(currentWorld) && !seenIds.contains(id)) {
+                waypoints.add(new ManagedWaypoint(id, config.character, config.color, config.visible, config.world));
+                seenIds.add(id);
+            }
+        });
+
+        return waypoints;
+    }
+
+    private void addManagedWaypoint(List<ManagedWaypoint> waypoints, Set<UUID> seenIds, ItemStack stack, String currentWorld) {
+        LodestoneTracker tracker = stack.get(DataComponents.LODESTONE_TRACKER);
+        if (tracker == null || tracker.target().isEmpty()) {
+            return;
+        }
+
+        if (!tracker.target().get().dimension().identifier().toString().equals(currentWorld)) {
+            return;
+        }
+
+        UUID waypointId = WaypointData.getWaypointId(stack);
+        if (waypointId == null) {
+            String fallbackSeed = tracker.target().get().dimension().identifier() + "|" + tracker.target().get().pos().toShortString();
+            waypointId = UUID.nameUUIDFromBytes(fallbackSeed.getBytes(StandardCharsets.UTF_8));
+        }
+
+        if (seenIds.contains(waypointId)) {
+            return;
+        }
+
+        WaypointConfig config = LocatorBarConfig.getWaypointConfig(waypointId);
+        String symbol = config != null ? config.character : WaypointData.getWaypointSymbol(stack);
+        int color = config != null ? config.color : (WaypointData.getCustomColor(stack) != null ? WaypointData.getCustomColor(stack) : colorFromWaypointId(waypointId));
+        boolean visible = config == null ? !WaypointData.isHidden(stack) : config.visible;
+
+        waypoints.add(new ManagedWaypoint(waypointId, symbol, color, visible, currentWorld));
+        seenIds.add(waypointId);
+    }
+
+    private static int colorFromWaypointId(UUID waypointId) {
+        long hash = waypointId.getMostSignificantBits() ^ waypointId.getLeastSignificantBits();
+        float hue = (hash & 0xFFFFL) / 65535.0F;
+        float saturation = 0.65F + (((hash >>> 16) & 0xFFL) / 255.0F) * 0.25F;
+        float value = 0.8F + (((hash >>> 24) & 0xFFL) / 255.0F) * 0.2F;
+        return Mth.hsvToRgb(hue, saturation, value);
     }
 
     private void applyAndSave() {
@@ -471,7 +573,10 @@ public final class LocatorBarConfigScreen extends Screen {
         updatePageState();
     }
 
-    private final class ConfigList extends ContainerObjectSelectionList<ConfigList.Entry> {
+    private record ManagedWaypoint(UUID id, String symbol, int color, boolean visible, String world) {
+    }
+
+    private final class ConfigList extends ContainerObjectSelectionList<ConfigList.AbstractEntry> {
         public ConfigList(Minecraft minecraft, int width, int height, int y, int itemHeight) {
             super(minecraft, width, height, y, itemHeight);
         }
@@ -483,6 +588,10 @@ public final class LocatorBarConfigScreen extends Screen {
 
         public void addEntry(Component label, AbstractWidget widget) {
             super.addEntry(new Entry(label, widget));
+        }
+
+        public void addWaypointEntry(ManagedWaypoint waypoint) {
+            super.addEntry(new WaypointEntry(waypoint));
         }
 
         @Override
@@ -500,17 +609,7 @@ public final class LocatorBarConfigScreen extends Screen {
         }
         *///?}
 
-        class Entry extends ContainerObjectSelectionList.Entry<Entry> {
-            private final Component label;
-            private final AbstractWidget widget;
-            private final List<AbstractWidget> children;
-
-            public Entry(Component label, AbstractWidget widget) {
-                this.label = label;
-                this.widget = widget;
-                this.children = ImmutableList.of(widget);
-            }
-
+        abstract class AbstractEntry extends ContainerObjectSelectionList.Entry<AbstractEntry> {
             //? if >=26.1 {
             @Override
             public void extractContent(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean isMouseOver, float partialTick) {
@@ -532,7 +631,22 @@ public final class LocatorBarConfigScreen extends Screen {
             }
             *///?}
 
-            private void renderEntry(GuiGraphicsExtractor guiGraphics, int top, int height, int mouseX, int mouseY, float partialTick) {
+            protected abstract void renderEntry(GuiGraphicsExtractor guiGraphics, int top, int height, int mouseX, int mouseY, float partialTick);
+        }
+
+        class Entry extends AbstractEntry {
+            private final Component label;
+            private final AbstractWidget widget;
+            private final List<AbstractWidget> children;
+
+            public Entry(Component label, AbstractWidget widget) {
+                this.label = label;
+                this.widget = widget;
+                this.children = ImmutableList.of(widget);
+            }
+
+            @Override
+            protected void renderEntry(GuiGraphicsExtractor guiGraphics, int top, int height, int mouseX, int mouseY, float partialTick) {
                 int centerY = top + (height - LocatorBarConfigScreen.this.font.lineHeight) / 2;
 
                 guiGraphics.text(LocatorBarConfigScreen.this.font, label, LocatorBarConfigScreen.this.width / 2 - 138, centerY, 0xFFFFFFFF, false);
@@ -543,6 +657,137 @@ public final class LocatorBarConfigScreen extends Screen {
                 widget.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
                 //? if <26.1
                 /*widget.render(guiGraphics, mouseX, mouseY, partialTick);*/
+            }
+
+            @Override
+            public List<? extends NarratableEntry> narratables() {
+                return this.children;
+            }
+
+            @Override
+            public List<? extends GuiEventListener> children() {
+                return this.children;
+            }
+        }
+
+        class WaypointEntry extends AbstractEntry {
+            private final ManagedWaypoint waypoint;
+            private final EditBox symbolBox;
+            private final EditBox colorBox;
+            private final Button visibilityButton;
+            private final List<AbstractWidget> children;
+
+            public WaypointEntry(ManagedWaypoint waypoint) {
+                this.waypoint = waypoint;
+
+                this.symbolBox = new EditBox(LocatorBarConfigScreen.this.font, 0, 0, 20, 20, Component.empty());
+                this.symbolBox.setValue(waypoint.symbol != null ? waypoint.symbol : "");
+                this.symbolBox.setMaxLength(1);
+                this.symbolBox.setResponder(value -> updateWaypoint());
+
+                this.colorBox = new EditBox(LocatorBarConfigScreen.this.font, 0, 0, 60, 20, Component.empty());
+                this.colorBox.setValue(String.format("%06X", waypoint.color & 0xFFFFFF));
+                this.colorBox.setMaxLength(6);
+                this.colorBox.setResponder(value -> updateWaypoint());
+
+                this.visibilityButton = Button.builder(
+                        Component.translatable(waypoint.visible ? "locatorbar.option.on" : "locatorbar.option.off"),
+                        button -> {
+                            toggleVisibility();
+                        }
+                ).bounds(0, 0, 40, 20).build();
+
+                this.children = ImmutableList.of(symbolBox, colorBox, visibilityButton);
+            }
+
+            private void toggleVisibility() {
+                boolean next = visibilityButton.getMessage().getString().equals(Component.translatable("locatorbar.option.off").getString());
+                visibilityButton.setMessage(Component.translatable(next ? "locatorbar.option.on" : "locatorbar.option.off"));
+                updateWaypoint();
+            }
+
+            private void updateWaypoint() {
+                String symbol = symbolBox.getValue();
+                int color;
+                try {
+                    color = Integer.parseInt(colorBox.getValue(), 16);
+                } catch (NumberFormatException e) {
+                    color = colorFromWaypointId(waypoint.id);
+                }
+                boolean visible = visibilityButton.getMessage().getString().equals(Component.translatable("locatorbar.option.on").getString());
+
+                LocatorBarConfig.setWaypointConfig(waypoint.id, new WaypointConfig(waypoint.world, color, symbol, visible));
+                LocatorBarConfig.save();
+            }
+
+            @Override
+            protected void renderEntry(GuiGraphicsExtractor guiGraphics, int top, int height, int mouseX, int mouseY, float partialTick) {
+                int centerX = LocatorBarConfigScreen.this.width / 2;
+                int previewX = centerX - 138;
+                int previewSize = 20;
+                int previewY = top + (height - previewSize) / 2;
+
+                // Preview
+                int color;
+                try {
+                    color = Integer.parseInt(colorBox.getValue(), 16);
+                } catch (NumberFormatException e) {
+                    color = colorFromWaypointId(waypoint.id);
+                }
+                String symbol = symbolBox.getValue();
+
+                RenderCompat.push(guiGraphics);
+                RenderCompat.translate(guiGraphics, previewX, previewY);
+                RenderCompat.blitTinted(
+                        guiGraphics,
+                        WAYPOINT_TEXTURE,
+                        0,
+                        0,
+                        0,
+                        0,
+                        previewSize,
+                        previewSize,
+                        36,
+                        36,
+                        36,
+                        36,
+                        0xFF000000 | color
+                );
+
+                if (!symbol.isEmpty()) {
+                    float dynamicTextScale = 0.75F * (previewSize / 14.0F);
+                    float textWidth = LocatorBarConfigScreen.this.font.width(symbol) * dynamicTextScale;
+                    float textHeight = LocatorBarConfigScreen.this.font.lineHeight * dynamicTextScale;
+                    float textX = ((previewSize - textWidth) / 2.0F) + 0.45F;
+                    float textY = (previewSize - textHeight) / 2.0F;
+                    RenderCompat.push(guiGraphics);
+                    RenderCompat.translate(guiGraphics, textX, textY);
+                    RenderCompat.scale(guiGraphics, dynamicTextScale, dynamicTextScale);
+                    RenderCompat.text(guiGraphics, symbol, 0, 0, 0xFFFFFFFF, false);
+                    RenderCompat.pop(guiGraphics);
+                }
+                RenderCompat.pop(guiGraphics);
+
+                symbolBox.setX(centerX - 100);
+                symbolBox.setY(top);
+                //? if >=26.1
+                symbolBox.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+                //? if <26.1
+                /*symbolBox.render(guiGraphics, mouseX, mouseY, partialTick);*/
+
+                colorBox.setX(centerX - 70);
+                colorBox.setY(top);
+                //? if >=26.1
+                colorBox.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+                //? if <26.1
+                /*colorBox.render(guiGraphics, mouseX, mouseY, partialTick);*/
+
+                visibilityButton.setX(centerX + 20);
+                visibilityButton.setY(top);
+                //? if >=26.1
+                visibilityButton.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+                //? if <26.1
+                /*visibilityButton.render(guiGraphics, mouseX, mouseY, partialTick);*/
             }
 
             @Override

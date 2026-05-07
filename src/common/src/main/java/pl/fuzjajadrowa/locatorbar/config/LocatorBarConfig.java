@@ -15,6 +15,9 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public final class LocatorBarConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -45,6 +48,9 @@ public final class LocatorBarConfig {
             }
             if (data.daysDisplayOrder == null) {
                 data.daysDisplayOrder = DaysDisplayOrder.DAYS_UNDER_COORDS;
+            }
+            if (data.waypoints == null) {
+                data.waypoints = new HashMap<>();
             }
             data.scale = clamp(data.scale, 0.5F, 2.0F);
             data.viewAngle = clamp(data.viewAngle, 30.0F, 180.0F);
@@ -214,6 +220,22 @@ public final class LocatorBarConfig {
         return serverSettings == null ? data.maxVisibleWaypoints : serverSettings.maxVisibleWaypoints();
     }
 
+    public static void setMaxVisibleWaypoints(int maxVisibleWaypoints) {
+        data.maxVisibleWaypoints = clampInt(maxVisibleWaypoints, 1, 64);
+    }
+
+    public static Map<UUID, WaypointConfig> getWaypoints() {
+        return data.waypoints;
+    }
+
+    public static WaypointConfig getWaypointConfig(UUID id) {
+        return data.waypoints.get(id);
+    }
+
+    public static void setWaypointConfig(UUID id, WaypointConfig config) {
+        data.waypoints.put(id, config);
+    }
+
     public static boolean hasServerSettings() {
         return serverSettings != null;
     }
@@ -226,16 +248,30 @@ public final class LocatorBarConfig {
         serverSettings = null;
     }
 
-    public static void setMaxVisibleWaypoints(int maxVisibleWaypoints) {
-        data.maxVisibleWaypoints = clampInt(maxVisibleWaypoints, 1, 64);
-    }
-
     private static float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));
     }
 
     private static int clampInt(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    public static final class WaypointConfig {
+        @SerializedName("world")
+        public String world;
+        @SerializedName("color")
+        public int color;
+        @SerializedName("character")
+        public String character;
+        @SerializedName("visible")
+        public boolean visible = true;
+
+        public WaypointConfig(String world, int color, String character, boolean visible) {
+            this.world = world;
+            this.color = color;
+            this.character = character == null || character.isEmpty() ? null : character.substring(0, 1);
+            this.visible = visible;
+        }
     }
 
     private static final class LocatorBarConfigData {
@@ -292,5 +328,8 @@ public final class LocatorBarConfig {
 
         @SerializedName("maxVisibleWaypoints")
         private int maxVisibleWaypoints = 16;
+
+        @SerializedName("waypoints")
+        private Map<UUID, WaypointConfig> waypoints = new HashMap<>();
     }
 }

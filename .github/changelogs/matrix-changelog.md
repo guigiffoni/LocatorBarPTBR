@@ -7,6 +7,7 @@ First normal release with fixed multiple bugs.
     * Server config now determines options for client-side mod.
     * When a server doesn't have installed mod, everything acts normally.
 - Added elements on the XP bar option in config for classic style.
+- Added waypoint manager in config screen when you can customize your visible waypoints.
 - [1.21.11, 26.1.x] Hidden default Minecraft locator bar.
 ## Changed
 - Config screen now hides unavailable options for chosen style.
