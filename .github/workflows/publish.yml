@@ -1,0 +1,89 @@
+name: Publish release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  publish:
+    name: Publish GitHub, Modrinth and CurseForge
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Sync target properties
+        run: |
+          for target in 1.21.1 1.21.4 1.21.11 26.1; do
+            cp "gradle/targets/${target}.properties" "versions/${target}-fabric/gradle.properties"
+            cp "gradle/targets/${target}.properties" "versions/${target}-neoforge/gradle.properties"
+          done
+
+      - name: Publish
+        run: ./gradlew --no-daemon publishAllMods --stacktrace
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODRINTH_API_KEY: ${{ secrets.MODRINTH_API_KEY }}
+          CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+          MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+          CURSEFORGE_PROJECT_ID: ${{ vars.CURSEFORGE_PROJECT_ID }}
+
+      - name: Close ready issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = 'status: ready';
+            const fs = require('fs');
+            const gradleProperties = fs.readFileSync('gradle.properties', 'utf8');
+            const modVersion = gradleProperties.match(/^mod\.version=(.+)$/m)?.[1]?.trim();
+            const releaseTag = context.ref?.startsWith('refs/tags/')
+              ? context.ref.substring('refs/tags/'.length)
+              : `v${modVersion ?? 'published version'}`;
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: label,
+              per_page: 100,
+            });
+
+            for (const issue of issues) {
+              if (issue.pull_request) {
+                continue;
+              }
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `Closed automatically after publishing ${releaseTag}.`,
+              });
+
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+                state_reason: 'completed',
+              });
+            }

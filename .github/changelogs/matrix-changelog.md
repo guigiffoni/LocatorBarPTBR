@@ -1,4 +1,4 @@
-# 1.0.1
+# 1.1.0
 First normal release with fixed multiple bugs.
 ## Added
 - [1.21.4, 1.21.11, 26.1.x] Added support for this Minecraft versions of the mod (resolves #2 issue).

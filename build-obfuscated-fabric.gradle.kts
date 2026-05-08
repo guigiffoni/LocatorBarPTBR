@@ -3,6 +3,7 @@ import groovy.json.JsonSlurper
 
 plugins {
     id("dev.architectury.loom") version "1.13-SNAPSHOT"
+    id("me.modmuss50.mod-publish-plugin")
 }
 
 val minecraftTitle = mod.prop("mc_title")
@@ -138,3 +139,5 @@ stonecutter {
         put("neoforge", false)
     }
 }
+
+configureLocatorBarPublishing()
