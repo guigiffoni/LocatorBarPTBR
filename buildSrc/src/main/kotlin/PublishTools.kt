@@ -78,7 +78,7 @@ private fun Project.configureRootGithubPublishing() {
         )
         type.set(STABLE)
         version.set(modVersion)
-        displayName.set(modVersion.map { "release: v$it" })
+        displayName.set(modVersion.map { "v$it" })
 
         github {
             accessToken.set(rootProject.providers.environmentVariable("GITHUB_TOKEN"))
