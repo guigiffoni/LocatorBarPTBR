@@ -38,6 +38,12 @@ jobs:
             cp "gradle/targets/${target}.properties" "versions/${target}-neoforge/gradle.properties"
           done
 
+      - name: Validate publish targets
+        run: ./gradlew --no-daemon validatePublishTargets --stacktrace
+
+      - name: Build all versioned mods
+        run: ./gradlew --no-daemon buildAllVersionedMods --stacktrace
+
       - name: Publish
         run: ./gradlew --no-daemon publishAllMods --stacktrace
         env:

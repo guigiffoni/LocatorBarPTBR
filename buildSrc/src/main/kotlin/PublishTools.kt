@@ -3,6 +3,7 @@ import me.modmuss50.mpp.ReleaseType.STABLE
 import me.modmuss50.mpp.platforms.curseforge.CurseforgeOptions
 import me.modmuss50.mpp.platforms.modrinth.ModrinthOptions
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.named
@@ -19,8 +20,7 @@ fun Project.configureLocatorBarPublishing() {
     val minecraftTitle = mod.prop("mc_title")
     val minecraftTargets = mod.prop("mc_targets")
     val releaseDisplayName = "Release ${mod.version} for $loaderTitle $minecraftTitle"
-    val supportedMinecraftVersions = explicitMinecraftVersions(minecraftTargets)
-    val supportedMinecraftRange = minecraftVersionRange(minecraftTargets)
+    val supportedMinecraftVersions = publishedMinecraftVersions(minecraftTargets, mod.dep("minecraft.$loader"))
     val changelog = providers.fileContents(
         rootProject.layout.projectDirectory.file(".github/changelogs/$target-$loader-changelog.md")
     ).asText
@@ -38,7 +38,7 @@ fun Project.configureLocatorBarPublishing() {
         modrinth {
             accessToken.set(providers.environmentVariable("MODRINTH_API_KEY"))
             projectId.set(providerPropertyOrEnvironment(MODRINTH_PROJECT_ID_PROPERTY, "MODRINTH_PROJECT_ID"))
-            configureMinecraftVersions(supportedMinecraftVersions, supportedMinecraftRange)
+            configureMinecraftVersions(supportedMinecraftVersions)
             if (loader == "fabric") {
                 requires("fabric-api")
                 optional("modmenu")
@@ -48,7 +48,7 @@ fun Project.configureLocatorBarPublishing() {
         curseforge {
             accessToken.set(providers.environmentVariable("CURSEFORGE_API_KEY"))
             projectId.set(providerPropertyOrEnvironment(CURSEFORGE_PROJECT_ID_PROPERTY, "CURSEFORGE_PROJECT_ID"))
-            configureMinecraftVersions(supportedMinecraftVersions, supportedMinecraftRange)
+            configureMinecraftVersions(supportedMinecraftVersions)
             clientRequired.set(true)
             serverRequired.set(true)
             this.changelog.set(changelog)
@@ -102,6 +102,14 @@ private fun Project.configureRootGithubPublishing() {
         description = "Publishes the GitHub release and all versioned Modrinth/CurseForge files."
         dependsOn(rootProject.tasks.named("publishMods"))
     }
+    val validatePublishTargets = rootProject.tasks.register("validatePublishTargets") {
+        group = "verification"
+        description = "Validates versioned Modrinth/CurseForge Minecraft target metadata before uploading."
+    }
+    val buildAllVersionedMods = rootProject.tasks.register("buildAllVersionedMods") {
+        group = "build"
+        description = "Builds all versioned mod projects before any publishing task uploads files."
+    }
 
     rootProject.gradle.projectsEvaluated {
         val releaseFiles = rootProject.subprojects
@@ -116,8 +124,40 @@ private fun Project.configureRootGithubPublishing() {
             additionalFiles.from(releaseFiles.drop(1))
         }
 
+        val subprojectBuilds = rootProject.subprojects.map { it.tasks.named("build") }
+        val subprojectPublishTasks = rootProject.subprojects.map { it.tasks.named("publishMods") }
+
+        validatePublishTargets.configure {
+            doLast {
+                rootProject.subprojects.sortedBy { it.name }.forEach { project ->
+                    val targets = project.mod.prop("mc_targets")
+                    val loader = project.name.substringAfterLast('-')
+                    val versions = publishedMinecraftVersions(targets, project.mod.dep("minecraft.$loader"))
+                    val range = minecraftVersionRange(targets)
+                    require(versions.isNotEmpty() || range != null) {
+                        "${project.path}: unsupported mod.mc_targets '$targets'. Use a single version, comma-separated versions, or '>= start < end'."
+                    }
+                }
+            }
+        }
+
+        buildAllVersionedMods.configure {
+            dependsOn(subprojectBuilds)
+            dependsOn(validatePublishTargets)
+        }
+
+        rootProject.tasks.named<Task>("publishMods") {
+            mustRunAfter(buildAllVersionedMods)
+        }
+        subprojectPublishTasks.forEach { publishTask ->
+            publishTask.configure {
+                mustRunAfter(buildAllVersionedMods)
+            }
+        }
+
         publishAllMods.configure {
-            dependsOn(rootProject.subprojects.map { it.tasks.named("publishMods") })
+            dependsOn(buildAllVersionedMods)
+            dependsOn(subprojectPublishTasks)
         }
     }
 }
@@ -133,31 +173,31 @@ private fun Project.publishJarTaskName(loader: String): String {
 private fun Project.providerPropertyOrEnvironment(propertyName: String, environmentName: String) =
     providers.gradleProperty(propertyName).orElse(providers.environmentVariable(environmentName))
 
-private fun ModrinthOptions.configureMinecraftVersions(versions: List<String>?, range: Pair<String, String>?) {
-    if (versions != null) {
-        versions.forEach { minecraftVersions.add(it) }
-    } else if (range != null) {
-        minecraftVersionRange {
-            start.set(range.first)
-            end.set(range.second)
-            includeSnapshots.set(false)
-        }
-    }
+private fun ModrinthOptions.configureMinecraftVersions(versions: List<String>) {
+    versions.forEach { minecraftVersions.add(it) }
 }
 
-private fun CurseforgeOptions.configureMinecraftVersions(versions: List<String>?, range: Pair<String, String>?) {
-    if (versions != null) {
-        versions.forEach { minecraftVersions.add(it) }
-    } else if (range != null) {
-        minecraftVersionRange {
-            start.set(range.first)
-            end.set(range.second)
-        }
-    }
+private fun CurseforgeOptions.configureMinecraftVersions(versions: List<String>) {
+    versions.forEach { minecraftVersions.add(it) }
 }
 
-private fun explicitMinecraftVersions(range: String): List<String>? =
-    if (!range.contains(' ') && !range.contains('<') && !range.contains('>')) listOf(range) else null
+private fun publishedMinecraftVersions(range: String, fallbackVersion: String): List<String> {
+    val explicitVersions = explicitMinecraftVersions(range)
+    if (explicitVersions != null) {
+        return explicitVersions
+    }
+    return if (minecraftVersionRange(range) != null) listOf(fallbackVersion) else emptyList()
+}
+
+private fun explicitMinecraftVersions(range: String): List<String>? {
+    if (range.contains('<') || range.contains('>')) {
+        return null
+    }
+    return range.split(',')
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .takeIf { it.isNotEmpty() }
+}
 
 private fun minecraftVersionRange(range: String): Pair<String, String>? {
     val start = Regex(""">=\s*([^\s]+)""").find(range)?.groupValues?.get(1)
