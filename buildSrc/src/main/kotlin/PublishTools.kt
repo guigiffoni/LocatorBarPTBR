@@ -89,6 +89,7 @@ private fun Project.configureRootGithubPublishing() {
             )
             commitish.set(
                 rootProject.providers.gradleProperty("publish.github.commitish")
+                    .orElse(rootProject.providers.environmentVariable("GITHUB_SHA"))
                     .orElse(rootProject.providers.environmentVariable("GITHUB_REF_NAME"))
                     .orElse("main")
             )
@@ -133,10 +134,10 @@ private fun Project.configureRootGithubPublishing() {
                     val targets = project.mod.prop("mc_targets")
                     val loader = project.name.substringAfterLast('-')
                     val versions = publishedMinecraftVersions(targets, project.mod.dep("minecraft.$loader"))
-                    val range = minecraftVersionRange(targets)
-                    require(versions.isNotEmpty() || range != null) {
+                    require(versions.isNotEmpty()) {
                         "${project.path}: unsupported mod.mc_targets '$targets'. Use a single version, comma-separated versions, or '>= start < end'."
                     }
+                    logger.lifecycle("${project.path}: publishing for Minecraft ${versions.joinToString(", ")}")
                 }
             }
         }
@@ -151,6 +152,7 @@ private fun Project.configureRootGithubPublishing() {
         }
         subprojectPublishTasks.forEach { publishTask ->
             publishTask.configure {
+                dependsOn(rootProject.tasks.named("publishMods"))
                 mustRunAfter(buildAllVersionedMods)
             }
         }
@@ -186,7 +188,14 @@ private fun publishedMinecraftVersions(range: String, fallbackVersion: String): 
     if (explicitVersions != null) {
         return explicitVersions
     }
-    return if (minecraftVersionRange(range) != null) listOf(fallbackVersion) else emptyList()
+    return minecraftVersionRange(range)
+        ?.let { versionRange ->
+            listOf(versionRange.start, fallbackVersion, versionRange.end.takeIf { versionRange.includeEnd })
+                .filterNotNull()
+                .distinct()
+                .filter { compareMinecraftVersions(it, versionRange.end) <= if (versionRange.includeEnd) 0 else -1 }
+        }
+        ?: emptyList()
 }
 
 private fun explicitMinecraftVersions(range: String): List<String>? {
@@ -199,8 +208,30 @@ private fun explicitMinecraftVersions(range: String): List<String>? {
         .takeIf { it.isNotEmpty() }
 }
 
-private fun minecraftVersionRange(range: String): Pair<String, String>? {
+private fun minecraftVersionRange(range: String): MinecraftVersionRange? {
     val start = Regex(""">=\s*([^\s]+)""").find(range)?.groupValues?.get(1)
-    val end = Regex("""<\s*([^\s]+)""").find(range)?.groupValues?.get(1)
-    return if (start != null && end != null) start to end else null
+    val endMatch = Regex("""<(?<inclusive>=)?\s*(?<version>[^\s]+)""").find(range)
+    val end = endMatch?.groups?.get("version")?.value
+    val includeEnd = endMatch?.groups?.get("inclusive")?.value == "="
+    return if (start != null && end != null) MinecraftVersionRange(start, end, includeEnd) else null
+}
+
+private data class MinecraftVersionRange(
+    val start: String,
+    val end: String,
+    val includeEnd: Boolean,
+)
+
+private fun compareMinecraftVersions(left: String, right: String): Int {
+    val leftParts = left.split('.').map { it.toIntOrNull() ?: 0 }
+    val rightParts = right.split('.').map { it.toIntOrNull() ?: 0 }
+    val maxSize = maxOf(leftParts.size, rightParts.size)
+    for (index in 0 until maxSize) {
+        val leftPart = leftParts.getOrElse(index) { 0 }
+        val rightPart = rightParts.getOrElse(index) { 0 }
+        if (leftPart != rightPart) {
+            return leftPart.compareTo(rightPart)
+        }
+    }
+    return 0
 }
