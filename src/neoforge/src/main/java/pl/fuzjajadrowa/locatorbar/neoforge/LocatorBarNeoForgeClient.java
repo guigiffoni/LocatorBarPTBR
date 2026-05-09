@@ -7,6 +7,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 import pl.fuzjajadrowa.locatorbar.client.LocatorBarConfigScreen;
 import pl.fuzjajadrowa.locatorbar.client.LocatorBarHudRenderer;
+import pl.fuzjajadrowa.locatorbar.client.PlayerLocatorClient;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarConfig;
 
 public final class LocatorBarNeoForgeClient {
@@ -25,5 +26,6 @@ public final class LocatorBarNeoForgeClient {
 
     private static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         LocatorBarConfig.clearServerSettings();
+        PlayerLocatorClient.clear();
     }
 }

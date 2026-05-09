@@ -6,13 +6,9 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.PlayerSkin;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.LodestoneTracker;
 import pl.fuzjajadrowa.locatorbar.LocatorBar;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarConfig;
@@ -61,10 +57,10 @@ public final class ReworkedLocatorBarHudRenderer {
     private static final int BASE_PLAYER_HEAD_MARKER_SIZE = 12;
     private static final int BASE_PLAYER_HEAD_OVERFLOW = 2;
     private static final int PLAYER_HEAD_TEXTURE_SIZE = 64;
-    private static final float PLAYER_FADE_START_DISTANCE = 45.0F;
-    private static final float PLAYER_FADE_TO_MIN_DISTANCE = 260.0F;
-    private static final float PLAYER_HIDE_DISTANCE = 330.0F;
-    private static final float PLAYER_MIN_ALPHA = 0.010F;
+    private static final float PLAYER_FADE_START_DISTANCE = 150.0F;
+    private static final float PLAYER_FADE_TO_MIN_DISTANCE = 350.0F;
+    private static final float PLAYER_HIDE_DISTANCE = 400.0F;
+    private static final float PLAYER_MIN_ALPHA = 0.20F;
     private static final int WAYPOINT_TEXTURE_SIZE = 36;
     private static final int BASE_WAYPOINT_MARKER_SIZE = 14;
     private static final float WAYPOINT_TEXT_SCALE = 0.75F;
@@ -454,72 +450,19 @@ public final class ReworkedLocatorBarHudRenderer {
 
     private static List<PlayerHeadMarker> collectPlayerHeadMarkers(Player localPlayer) {
         List<PlayerHeadMarker> markers = new ArrayList<>();
-        for (Player otherPlayer : localPlayer.level().players()) {
-            if (otherPlayer == localPlayer) {
-                continue;
-            }
-
-            if (shouldHidePlayerHead(localPlayer, otherPlayer)) {
-                continue;
-            }
-
-            float alpha = computePlayerAlpha(localPlayer, otherPlayer);
-            if (alpha <= 0.0F) {
-                continue;
-            }
-
-            double dx = otherPlayer.getX() - localPlayer.getX();
-            double dz = otherPlayer.getZ() - localPlayer.getZ();
-            if (dx * dx + dz * dz < 1.0E-6D) {
-                continue;
-            }
-
-            float directionYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-            float distance = (float) Math.sqrt(dx * dx + dz * dz);
-            PlayerSkin playerSkin = Minecraft.getInstance().getSkinManager()
-                    //? if >=1.21.11
-                    .createLookup(otherPlayer.getGameProfile(), false).get();
-                    //? if <1.21.11
-                    /*.getInsecureSkin(otherPlayer.getGameProfile());*/
+        for (PlayerLocatorClient.Marker marker : PlayerLocatorClient.collectMarkers(localPlayer, ReworkedLocatorBarHudRenderer::computePlayerAlpha)) {
             markers.add(new PlayerHeadMarker(
-                    //? if >=1.21.11
-                    playerSkin.body().texturePath(),
-                    //? if <1.21.11
-                    /*playerSkin.texture(),*/
-                    wrapTo180(directionYaw),
-                    alpha,
-                    distance
+                    marker.skinTexture(),
+                    wrapTo180(marker.directionYaw()),
+                    marker.alpha(),
+                    marker.distance()
             ));
         }
         markers.sort(Comparator.comparingDouble(PlayerHeadMarker::distance));
         return markers;
     }
 
-    private static boolean shouldHidePlayerHead(Player localPlayer, Player otherPlayer) {
-        if (!otherPlayer.level().dimension().equals(localPlayer.level().dimension())) {
-            return true;
-        }
-        if (otherPlayer.isCrouching()) {
-            return true;
-        }
-
-        ItemStack helmet = otherPlayer.getItemBySlot(EquipmentSlot.HEAD);
-        if (helmet.isEmpty()) {
-            return false;
-        }
-
-        Item helmetItem = helmet.getItem();
-        return helmetItem == Items.CARVED_PUMPKIN
-                || helmetItem == Items.SKELETON_SKULL
-                || helmetItem == Items.WITHER_SKELETON_SKULL
-                || helmetItem == Items.ZOMBIE_HEAD
-                || helmetItem == Items.CREEPER_HEAD
-                || helmetItem == Items.DRAGON_HEAD
-                || helmetItem == Items.PIGLIN_HEAD;
-    }
-
-    private static float computePlayerAlpha(Player localPlayer, Player otherPlayer) {
-        float distance = horizontalDistance(localPlayer, otherPlayer);
+    private static float computePlayerAlpha(float distance) {
         if (distance <= PLAYER_FADE_START_DISTANCE) {
             return 1.0F;
         }
@@ -532,12 +475,6 @@ public final class ReworkedLocatorBarHudRenderer {
             return PLAYER_MIN_ALPHA;
         }
         return 0.0F;
-    }
-
-    private static float horizontalDistance(Player localPlayer, Player otherPlayer) {
-        double dx = otherPlayer.getX() - localPlayer.getX();
-        double dz = otherPlayer.getZ() - localPlayer.getZ();
-        return (float) Math.sqrt(dx * dx + dz * dz);
     }
 
     private static float wrapTo180(float degrees) {

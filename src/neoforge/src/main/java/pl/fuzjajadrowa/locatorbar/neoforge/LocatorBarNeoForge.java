@@ -20,6 +20,7 @@ public final class LocatorBarNeoForge {
         *///?}
         modEventBus.addListener(LocatorBarNeoForgeNetworking::registerPayloads);
         NeoForge.EVENT_BUS.addListener(LocatorBarNeoForgeNetworking::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(LocatorBarNeoForgeNetworking::onServerTick);
         //? if >=1.21.11 {
         if (FMLEnvironment.getDist() == Dist.CLIENT) {
             initClient(modContainer);
