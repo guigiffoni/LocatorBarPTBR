@@ -61,16 +61,26 @@ public final class LocatorBarServerConfig {
             Files.createDirectories(CONFIG_PATH.getParent());
             try (Writer writer = Files.newBufferedWriter(CONFIG_PATH)) {
                 writer.write("# Locator Bar server-enforced settings\n");
+                writer.write("# You can choose between \"reworked\" and \"classic\" style or just disable it with \"off\".\n");
                 writer.write("style = \"" + data.style().name().toLowerCase(Locale.ROOT) + "\"\n");
+                writer.write("# Show coordinates/days under locator bar. Works only on Reworked style.\n");
                 writer.write("showCoordinates = " + data.showCoordinates() + "\n");
                 writer.write("showDays = " + data.showDays() + "\n");
+                writer.write("# Show world directions on locator bar.\n");
                 writer.write("showWorldDirections = " + data.showWorldDirections() + "\n");
+                writer.write("# Show player heads on locator bar and choose max visible players on it.\n");
                 writer.write("showPlayerHeads = " + data.showPlayerHeads() + "\n");
                 writer.write("maxVisiblePlayers = " + data.maxVisiblePlayers() + "\n");
+                writer.write("# Player heads distance behaviour configuration. Fade start and fade to min is chose range\n");
+                writer.write("# when player head opacity rises down to min alpha value in percent. To disable this behaviour\n");
+                writer.write("# set min alpha value to 100.0.\n");
+                writer.write("# Head hide distance is the distance when player head completely disappears from locator bar.\n");
+                writer.write("# You can set it to your own value or set \"inf\" to disable this behaviour.\n");
                 writer.write("playerHeadFadeStartDistance = " + formatDistance(data.playerHeadFadeStartDistance()) + "\n");
                 writer.write("playerHeadFadeToMinDistance = " + formatDistance(data.playerHeadFadeToMinDistance()) + "\n");
                 writer.write("playerHeadHideDistance = " + formatDistance(data.playerHeadHideDistance()) + "\n");
                 writer.write("playerHeadMinAlphaPercent = " + data.playerHeadMinAlphaPercent() + "\n");
+                writer.write("# Show waypoints on locator bar and choose max visible waypoints on it.\n");
                 writer.write("showWaypoints = " + data.showWaypoints() + "\n");
                 writer.write("maxVisibleWaypoints = " + data.maxVisibleWaypoints() + "\n");
             }
