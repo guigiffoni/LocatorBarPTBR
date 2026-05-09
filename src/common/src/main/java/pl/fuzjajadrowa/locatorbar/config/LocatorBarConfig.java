@@ -22,6 +22,10 @@ import java.util.UUID;
 public final class LocatorBarConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_PATH = Path.of("config", "locatorbar.json");
+    private static final float CLIENT_ONLY_PLAYER_HEAD_FADE_START_DISTANCE = 50.0F;
+    private static final float CLIENT_ONLY_PLAYER_HEAD_FADE_TO_MIN_DISTANCE = 125.0F;
+    private static final float CLIENT_ONLY_PLAYER_HEAD_HIDE_DISTANCE = 150.0F;
+    private static final float CLIENT_ONLY_PLAYER_HEAD_MIN_ALPHA_PERCENT = 40.0F;
     private static LocatorBarConfigData data = new LocatorBarConfigData();
     private static ServerSettings serverSettings;
 
@@ -198,6 +202,23 @@ public final class LocatorBarConfig {
 
     public static void setMaxVisiblePlayers(int maxVisiblePlayers) {
         data.maxVisiblePlayers = clampInt(maxVisiblePlayers, 1, 64);
+    }
+
+    public static float getPlayerHeadFadeStartDistance() {
+        return serverSettings == null ? CLIENT_ONLY_PLAYER_HEAD_FADE_START_DISTANCE : serverSettings.playerHeadFadeStartDistance();
+    }
+
+    public static float getPlayerHeadFadeToMinDistance() {
+        return serverSettings == null ? CLIENT_ONLY_PLAYER_HEAD_FADE_TO_MIN_DISTANCE : serverSettings.playerHeadFadeToMinDistance();
+    }
+
+    public static float getPlayerHeadHideDistance() {
+        return serverSettings == null ? CLIENT_ONLY_PLAYER_HEAD_HIDE_DISTANCE : serverSettings.playerHeadHideDistance();
+    }
+
+    public static float getPlayerHeadMinAlpha() {
+        float percent = serverSettings == null ? CLIENT_ONLY_PLAYER_HEAD_MIN_ALPHA_PERCENT : serverSettings.playerHeadMinAlphaPercent();
+        return clamp(percent, 0.0F, 100.0F) / 100.0F;
     }
 
     public static boolean isShowWaypoints() {

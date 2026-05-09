@@ -12,6 +12,7 @@ import java.util.Properties;
 
 public final class LocatorBarServerConfig {
     private static final Path CONFIG_PATH = Path.of("config", "locatorbar-server.toml");
+    public static final float INFINITE_PLAYER_HEAD_DISTANCE = 60_000_000.0F;
     private static ServerSettings data = null;
 
     private LocatorBarServerConfig() {
@@ -27,6 +28,9 @@ public final class LocatorBarServerConfig {
         Properties properties = new Properties();
         try (Reader reader = Files.newBufferedReader(CONFIG_PATH)) {
             properties.load(new TomlPropertiesReader(reader));
+            float playerHeadFadeStartDistance = readDistance(properties, "playerHeadFadeStartDistance", ServerSettings.DEFAULT_PLAYER_HEAD_FADE_START_DISTANCE, 0.0F);
+            float playerHeadFadeToMinDistance = readDistance(properties, "playerHeadFadeToMinDistance", ServerSettings.DEFAULT_PLAYER_HEAD_FADE_TO_MIN_DISTANCE, playerHeadFadeStartDistance);
+            float playerHeadHideDistance = readDistance(properties, "playerHeadHideDistance", ServerSettings.DEFAULT_PLAYER_HEAD_HIDE_DISTANCE, playerHeadFadeToMinDistance);
             data = new ServerSettings(
                     readStyle(properties, "style", LocatorBarStyle.REWORKED),
                     readBoolean(properties, "showCoordinates", true),
@@ -34,9 +38,14 @@ public final class LocatorBarServerConfig {
                     readBoolean(properties, "showWorldDirections", true),
                     readBoolean(properties, "showPlayerHeads", true),
                     readInt(properties, "maxVisiblePlayers", 16, 1, 64),
+                    playerHeadFadeStartDistance,
+                    playerHeadFadeToMinDistance,
+                    playerHeadHideDistance,
+                    readFloat(properties, "playerHeadMinAlphaPercent", ServerSettings.DEFAULT_PLAYER_HEAD_MIN_ALPHA_PERCENT, 0.0F, 100.0F),
                     readBoolean(properties, "showWaypoints", true),
                     readInt(properties, "maxVisibleWaypoints", 16, 1, 64)
             );
+            save();
         } catch (IOException | IllegalArgumentException exception) {
             data = ServerSettings.defaults();
             save();
@@ -58,6 +67,10 @@ public final class LocatorBarServerConfig {
                 writer.write("showWorldDirections = " + data.showWorldDirections() + "\n");
                 writer.write("showPlayerHeads = " + data.showPlayerHeads() + "\n");
                 writer.write("maxVisiblePlayers = " + data.maxVisiblePlayers() + "\n");
+                writer.write("playerHeadFadeStartDistance = " + formatDistance(data.playerHeadFadeStartDistance()) + "\n");
+                writer.write("playerHeadFadeToMinDistance = " + formatDistance(data.playerHeadFadeToMinDistance()) + "\n");
+                writer.write("playerHeadHideDistance = " + formatDistance(data.playerHeadHideDistance()) + "\n");
+                writer.write("playerHeadMinAlphaPercent = " + data.playerHeadMinAlphaPercent() + "\n");
                 writer.write("showWaypoints = " + data.showWaypoints() + "\n");
                 writer.write("maxVisibleWaypoints = " + data.maxVisibleWaypoints() + "\n");
             }
@@ -102,6 +115,32 @@ public final class LocatorBarServerConfig {
         }
     }
 
+    private static float readDistance(Properties properties, String key, float fallback, float min) {
+        String value = properties.getProperty(key);
+        if (value != null && value.trim().replace("\"", "").equalsIgnoreCase("inf")) {
+            return INFINITE_PLAYER_HEAD_DISTANCE;
+        }
+        return readFloat(properties, key, fallback, min, INFINITE_PLAYER_HEAD_DISTANCE);
+    }
+
+    private static float readFloat(Properties properties, String key, float fallback, float min, float max) {
+        String value = properties.getProperty(key);
+        if (value == null) {
+            return fallback;
+        }
+
+        try {
+            float parsed = Float.parseFloat(value.trim().replace("\"", ""));
+            return Math.max(min, Math.min(max, parsed));
+        } catch (NumberFormatException exception) {
+            return fallback;
+        }
+    }
+
+    private static String formatDistance(float distance) {
+        return distance >= INFINITE_PLAYER_HEAD_DISTANCE ? "inf" : Float.toString(distance);
+    }
+
     public record ServerSettings(
             LocatorBarStyle style,
             boolean showCoordinates,
@@ -109,11 +148,33 @@ public final class LocatorBarServerConfig {
             boolean showWorldDirections,
             boolean showPlayerHeads,
             int maxVisiblePlayers,
+            float playerHeadFadeStartDistance,
+            float playerHeadFadeToMinDistance,
+            float playerHeadHideDistance,
+            float playerHeadMinAlphaPercent,
             boolean showWaypoints,
             int maxVisibleWaypoints
     ) {
+        public static final float DEFAULT_PLAYER_HEAD_FADE_START_DISTANCE = 150.0F;
+        public static final float DEFAULT_PLAYER_HEAD_FADE_TO_MIN_DISTANCE = 350.0F;
+        public static final float DEFAULT_PLAYER_HEAD_HIDE_DISTANCE = 400.0F;
+        public static final float DEFAULT_PLAYER_HEAD_MIN_ALPHA_PERCENT = 40.0F;
+
         public static ServerSettings defaults() {
-            return new ServerSettings(LocatorBarStyle.REWORKED, true, false, true, true, 16, true, 16);
+            return new ServerSettings(
+                    LocatorBarStyle.REWORKED,
+                    true,
+                    false,
+                    true,
+                    true,
+                    16,
+                    DEFAULT_PLAYER_HEAD_FADE_START_DISTANCE,
+                    DEFAULT_PLAYER_HEAD_FADE_TO_MIN_DISTANCE,
+                    DEFAULT_PLAYER_HEAD_HIDE_DISTANCE,
+                    DEFAULT_PLAYER_HEAD_MIN_ALPHA_PERCENT,
+                    true,
+                    16
+            );
         }
     }
 

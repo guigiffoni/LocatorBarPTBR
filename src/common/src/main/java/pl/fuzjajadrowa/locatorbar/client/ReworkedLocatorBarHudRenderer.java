@@ -57,10 +57,6 @@ public final class ReworkedLocatorBarHudRenderer {
     private static final int BASE_PLAYER_HEAD_MARKER_SIZE = 12;
     private static final int BASE_PLAYER_HEAD_OVERFLOW = 2;
     private static final int PLAYER_HEAD_TEXTURE_SIZE = 64;
-    private static final float PLAYER_FADE_START_DISTANCE = 150.0F;
-    private static final float PLAYER_FADE_TO_MIN_DISTANCE = 350.0F;
-    private static final float PLAYER_HIDE_DISTANCE = 400.0F;
-    private static final float PLAYER_MIN_ALPHA = 0.20F;
     private static final int WAYPOINT_TEXTURE_SIZE = 36;
     private static final int BASE_WAYPOINT_MARKER_SIZE = 14;
     private static final float WAYPOINT_TEXT_SCALE = 0.75F;
@@ -463,16 +459,24 @@ public final class ReworkedLocatorBarHudRenderer {
     }
 
     private static float computePlayerAlpha(float distance) {
-        if (distance <= PLAYER_FADE_START_DISTANCE) {
+        float fadeStartDistance = LocatorBarConfig.getPlayerHeadFadeStartDistance();
+        float fadeToMinDistance = LocatorBarConfig.getPlayerHeadFadeToMinDistance();
+        float hideDistance = LocatorBarConfig.getPlayerHeadHideDistance();
+        float minAlpha = LocatorBarConfig.getPlayerHeadMinAlpha();
+
+        if (distance <= fadeStartDistance) {
             return 1.0F;
         }
-        if (distance <= PLAYER_FADE_TO_MIN_DISTANCE) {
-            float progress = (distance - PLAYER_FADE_START_DISTANCE) / (PLAYER_FADE_TO_MIN_DISTANCE - PLAYER_FADE_START_DISTANCE);
+        if (distance <= fadeToMinDistance) {
+            if (fadeToMinDistance <= fadeStartDistance) {
+                return minAlpha;
+            }
+            float progress = (distance - fadeStartDistance) / (fadeToMinDistance - fadeStartDistance);
             float curvedProgress = (float) Math.pow(progress, 1.65D);
-            return 1.0F - (curvedProgress * (1.0F - PLAYER_MIN_ALPHA));
+            return 1.0F - (curvedProgress * (1.0F - minAlpha));
         }
-        if (distance < PLAYER_HIDE_DISTANCE) {
-            return PLAYER_MIN_ALPHA;
+        if (distance < hideDistance) {
+            return minAlpha;
         }
         return 0.0F;
     }

@@ -23,6 +23,10 @@ public record ServerConfigPayload(ServerSettings settings) implements CustomPack
                 buffer.readBoolean(),
                 buffer.readBoolean(),
                 buffer.readVarInt(),
+                buffer.readFloat(),
+                buffer.readFloat(),
+                buffer.readFloat(),
+                buffer.readFloat(),
                 buffer.readBoolean(),
                 buffer.readVarInt()
         ));
@@ -35,6 +39,10 @@ public record ServerConfigPayload(ServerSettings settings) implements CustomPack
         buffer.writeBoolean(settings.showWorldDirections());
         buffer.writeBoolean(settings.showPlayerHeads());
         buffer.writeVarInt(settings.maxVisiblePlayers());
+        buffer.writeFloat(settings.playerHeadFadeStartDistance());
+        buffer.writeFloat(settings.playerHeadFadeToMinDistance());
+        buffer.writeFloat(settings.playerHeadHideDistance());
+        buffer.writeFloat(settings.playerHeadMinAlphaPercent());
         buffer.writeBoolean(settings.showWaypoints());
         buffer.writeVarInt(settings.maxVisibleWaypoints());
     }

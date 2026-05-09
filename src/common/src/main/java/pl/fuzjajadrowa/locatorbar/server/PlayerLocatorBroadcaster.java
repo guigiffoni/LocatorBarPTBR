@@ -16,8 +16,6 @@ import java.util.PriorityQueue;
 
 public final class PlayerLocatorBroadcaster {
     public static final int UPDATE_INTERVAL_TICKS = 5;
-    private static final double MAX_DISTANCE = 400.0D;
-    private static final double MAX_DISTANCE_SQUARED = MAX_DISTANCE * MAX_DISTANCE;
 
     private PlayerLocatorBroadcaster() {
     }
@@ -32,6 +30,8 @@ public final class PlayerLocatorBroadcaster {
         }
 
         int maxVisiblePlayers = settings.maxVisiblePlayers();
+        double maxDistance = settings.playerHeadHideDistance();
+        double maxDistanceSquared = maxDistance * maxDistance;
         PriorityQueue<PlayerEntry> closestEntries = new PriorityQueue<>(
                 maxVisiblePlayers,
                 Comparator.comparingDouble(PlayerEntry::distanceSquared).reversed()
@@ -45,7 +45,7 @@ public final class PlayerLocatorBroadcaster {
             double dx = otherPlayer.getX() - viewer.getX();
             double dz = otherPlayer.getZ() - viewer.getZ();
             double distanceSquared = dx * dx + dz * dz;
-            if (distanceSquared < 1.0E-6D || distanceSquared >= MAX_DISTANCE_SQUARED) {
+            if (distanceSquared < 1.0E-6D || distanceSquared >= maxDistanceSquared) {
                 continue;
             }
 
