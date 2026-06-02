@@ -239,8 +239,9 @@ public final class ReworkedLocatorBarHudRenderer {
 
         float normalized = relative / halfViewAngle;
         float markerX = centerX + normalized * (BAR_TEXTURE_WIDTH / 2.0F) - (waypointMarkerSize / 2.0F);
+        int drawY = marker.isDeath() ? (BAR_TEXTURE_HEIGHT - waypointMarkerSize) / 2 : markerY;
         RenderCompat.push(guiGraphics);
-        RenderCompat.translate(guiGraphics, markerX, markerY);
+        RenderCompat.translate(guiGraphics, markerX, drawY);
         Identifier texture = marker.isDeath() ? DEATH_WAYPOINT : WAYPOINT;
         RenderCompat.blitTinted(
                 guiGraphics,
@@ -437,8 +438,8 @@ public final class ReworkedLocatorBarHudRenderer {
         }
 
         markers.sort((m1, m2) -> {
-            if (m1.isDeath() && !m2.isDeath()) return -1;
-            if (!m1.isDeath() && m2.isDeath()) return 1;
+            if (m1.isDeath() && !m2.isDeath()) return 1;
+            if (!m1.isDeath() && m2.isDeath()) return -1;
             int idx1 = m1.index() > 0 ? m1.index() : Integer.MAX_VALUE;
             int idx2 = m2.index() > 0 ? m2.index() : Integer.MAX_VALUE;
             if (idx1 != idx2) {
