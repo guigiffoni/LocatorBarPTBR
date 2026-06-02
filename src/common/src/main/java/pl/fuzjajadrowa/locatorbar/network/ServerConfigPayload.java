@@ -28,7 +28,8 @@ public record ServerConfigPayload(ServerSettings settings) implements CustomPack
                 buffer.readFloat(),
                 buffer.readFloat(),
                 buffer.readBoolean(),
-                buffer.readVarInt()
+                buffer.readVarInt(),
+                buffer.readBoolean()
         ));
     }
 
@@ -45,6 +46,7 @@ public record ServerConfigPayload(ServerSettings settings) implements CustomPack
         buffer.writeFloat(settings.playerHeadMinAlphaPercent());
         buffer.writeBoolean(settings.showWaypoints());
         buffer.writeVarInt(settings.maxVisibleWaypoints());
+        buffer.writeBoolean(settings.showDeathWaypoint());
     }
 
     @Override

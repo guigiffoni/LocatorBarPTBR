@@ -43,7 +43,8 @@ public final class LocatorBarServerConfig {
                     playerHeadHideDistance,
                     readFloat(properties, "playerHeadMinAlphaPercent", ServerSettings.DEFAULT_PLAYER_HEAD_MIN_ALPHA_PERCENT, 0.0F, 100.0F),
                     readBoolean(properties, "showWaypoints", true),
-                    readInt(properties, "maxVisibleWaypoints", 16, 1, 64)
+                    readInt(properties, "maxVisibleWaypoints", 16, 1, 64),
+                    readBoolean(properties, "showDeathWaypoint", true)
             );
             save();
         } catch (IOException | IllegalArgumentException exception) {
@@ -83,6 +84,8 @@ public final class LocatorBarServerConfig {
                 writer.write("# Show waypoints on locator bar and choose max visible waypoints on it.\n");
                 writer.write("showWaypoints = " + data.showWaypoints() + "\n");
                 writer.write("maxVisibleWaypoints = " + data.maxVisibleWaypoints() + "\n");
+                writer.write("# Show death waypoint on locator bar.\n");
+                writer.write("showDeathWaypoint = " + data.showDeathWaypoint() + "\n");
             }
         } catch (IOException ignored) {
             // Keep startup stable even if saving fails.
@@ -163,7 +166,8 @@ public final class LocatorBarServerConfig {
             float playerHeadHideDistance,
             float playerHeadMinAlphaPercent,
             boolean showWaypoints,
-            int maxVisibleWaypoints
+            int maxVisibleWaypoints,
+            boolean showDeathWaypoint
     ) {
         public static final float DEFAULT_PLAYER_HEAD_FADE_START_DISTANCE = 150.0F;
         public static final float DEFAULT_PLAYER_HEAD_FADE_TO_MIN_DISTANCE = 350.0F;
@@ -183,7 +187,8 @@ public final class LocatorBarServerConfig {
                     DEFAULT_PLAYER_HEAD_HIDE_DISTANCE,
                     DEFAULT_PLAYER_HEAD_MIN_ALPHA_PERCENT,
                     true,
-                    16
+                    16,
+                    true
             );
         }
     }

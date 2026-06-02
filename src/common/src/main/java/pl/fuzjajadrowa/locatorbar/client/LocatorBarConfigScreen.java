@@ -80,6 +80,7 @@ public final class LocatorBarConfigScreen extends Screen {
     private boolean selectedPlayerHeadOutline;
     private int selectedMaxVisiblePlayers;
     private boolean selectedShowWaypoints;
+    private boolean selectedShowDeathWaypoint;
     private float selectedWaypointsScale;
     private int selectedMaxVisibleWaypoints;
     private int page = 0;
@@ -105,6 +106,7 @@ public final class LocatorBarConfigScreen extends Screen {
     private ConfigSlider maxVisiblePlayersSlider;
 
     private Button showWaypointsButton;
+    private Button showDeathWaypointButton;
     private ConfigSlider waypointsScaleSlider;
     private ConfigSlider maxVisibleWaypointsSlider;
 
@@ -131,6 +133,7 @@ public final class LocatorBarConfigScreen extends Screen {
         this.selectedPlayerHeadOutline = LocatorBarConfig.isPlayerHeadOutline();
         this.selectedMaxVisiblePlayers = LocatorBarConfig.getMaxVisiblePlayers();
         this.selectedShowWaypoints = LocatorBarConfig.isShowWaypoints();
+        this.selectedShowDeathWaypoint = LocatorBarConfig.isShowDeathWaypoint();
         this.selectedWaypointsScale = LocatorBarConfig.getWaypointsScale();
         this.selectedMaxVisibleWaypoints = LocatorBarConfig.getMaxVisibleWaypoints();
     }
@@ -204,6 +207,7 @@ public final class LocatorBarConfigScreen extends Screen {
                 value -> Integer.toString(Math.round(value)));
 
         showWaypointsButton = Button.builder(showWaypointsButtonText(), button -> toggleShowWaypoints()).bounds(0, 0, 120, 20).build();
+        showDeathWaypointButton = Button.builder(showDeathWaypointButtonText(), button -> toggleShowDeathWaypoint()).bounds(0, 0, 120, 20).build();
 
         waypointsScaleSlider = new ConfigSlider(0, 0, 120, 20, Component.translatable("locatorbar.config.field.waypoints_size"),
                 MARKER_SCALE_MIN, MARKER_SCALE_MAX, MARKER_SCALE_STEP, selectedWaypointsScale,
@@ -384,6 +388,17 @@ public final class LocatorBarConfigScreen extends Screen {
         return Component.translatable(selectedShowWaypoints ? "locatorbar.option.on" : "locatorbar.option.off");
     }
 
+    private void toggleShowDeathWaypoint() {
+        selectedShowDeathWaypoint = !selectedShowDeathWaypoint;
+        showDeathWaypointButton.setMessage(showDeathWaypointButtonText());
+        applyAndSave();
+        updateControlStates();
+    }
+
+    private Component showDeathWaypointButtonText() {
+        return Component.translatable(selectedShowDeathWaypoint ? "locatorbar.option.on" : "locatorbar.option.off");
+    }
+
     private void updateControlStates() {
         boolean serverControlled = LocatorBarConfig.hasServerSettings();
         boolean styleEnabled = selectedStyle != LocatorBarStyle.OFF;
@@ -412,6 +427,7 @@ public final class LocatorBarConfigScreen extends Screen {
         maxVisiblePlayersSlider.active = canChangeHeadSettings && !serverControlled;
 
         showWaypointsButton.active = styleEnabled && !serverControlled;
+        showDeathWaypointButton.active = styleEnabled && selectedShowWaypoints && !serverControlled;
         waypointsScaleSlider.active = canChangeWaypoints;
         maxVisibleWaypointsSlider.active = canChangeWaypoints && !serverControlled;
     }
@@ -445,6 +461,7 @@ public final class LocatorBarConfigScreen extends Screen {
                 this.list.addEntry(Component.translatable("locatorbar.config.field.max_visible_players"), maxVisiblePlayersSlider);
             } else {
                 this.list.addEntry(Component.translatable("locatorbar.config.field.show_waypoints"), showWaypointsButton);
+                this.list.addEntry(Component.translatable("locatorbar.config.field.show_death_waypoint"), showDeathWaypointButton);
                 this.list.addEntry(Component.translatable("locatorbar.config.field.waypoints_size"), waypointsScaleSlider);
                 this.list.addEntry(Component.translatable("locatorbar.config.field.max_visible_waypoints"), maxVisibleWaypointsSlider);
 
@@ -571,6 +588,7 @@ public final class LocatorBarConfigScreen extends Screen {
         LocatorBarConfig.setWaypointsScale(selectedWaypointsScale);
         if (!serverControlled) {
             LocatorBarConfig.setMaxVisibleWaypoints(selectedMaxVisibleWaypoints);
+            LocatorBarConfig.setShowDeathWaypoint(selectedShowDeathWaypoint);
         }
         LocatorBarConfig.setCustomOffsetX(selectedCustomOffsetX);
         LocatorBarConfig.setCustomOffsetY(selectedCustomOffsetY);

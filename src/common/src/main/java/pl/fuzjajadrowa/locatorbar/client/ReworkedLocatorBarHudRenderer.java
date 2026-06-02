@@ -46,6 +46,10 @@ public final class ReworkedLocatorBarHudRenderer {
             LocatorBar.MOD_ID,
             "textures/gui/waypoint.png"
     );
+    private static final Identifier DEATH_WAYPOINT = Identifier.fromNamespaceAndPath(
+            LocatorBar.MOD_ID,
+            "textures/gui/death_waypoint.png"
+    );
     private static final int BAR_TEXTURE_WIDTH = 102;
     private static final int BAR_TEXTURE_HEIGHT = 10;
     private static final int BAR_MARGIN = 5;
@@ -237,9 +241,10 @@ public final class ReworkedLocatorBarHudRenderer {
         float markerX = centerX + normalized * (BAR_TEXTURE_WIDTH / 2.0F) - (waypointMarkerSize / 2.0F);
         RenderCompat.push(guiGraphics);
         RenderCompat.translate(guiGraphics, markerX, markerY);
+        Identifier texture = marker.isDeath() ? DEATH_WAYPOINT : WAYPOINT;
         RenderCompat.blitTinted(
                 guiGraphics,
-                WAYPOINT,
+                texture,
                 0,
                 0,
                 0,
@@ -252,6 +257,11 @@ public final class ReworkedLocatorBarHudRenderer {
                 WAYPOINT_TEXTURE_SIZE,
                 0xFF000000 | marker.rgbColor()
         );
+
+        if (marker.isDeath()) {
+            RenderCompat.pop(guiGraphics);
+            return true;
+        }
 
         float dynamicTextScale = WAYPOINT_TEXT_SCALE * (waypointMarkerSize / (float) BASE_WAYPOINT_MARKER_SIZE);
         if (defaultIndexText && displayText.length() > 1) {
@@ -355,6 +365,31 @@ public final class ReworkedLocatorBarHudRenderer {
         RenderCompat.text(guiGraphics, text, textX, y, 0xFFFFFFFF, false);
     }
 
+    private static boolean hasRecoveryCompass(Player player) {
+        //? if >=1.21.11 {
+        for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
+            if (stack.is(net.minecraft.world.item.Items.RECOVERY_COMPASS)) {
+                return true;
+            }
+        }
+        if (player.getInventory().getItem(Inventory.SLOT_OFFHAND).is(net.minecraft.world.item.Items.RECOVERY_COMPASS)) {
+            return true;
+        }
+        //?} else {
+        /*for (ItemStack stack : player.getInventory().items) {
+            if (stack.is(net.minecraft.world.item.Items.RECOVERY_COMPASS)) {
+                return true;
+            }
+        }
+        for (ItemStack stack : player.getInventory().offhand) {
+            if (stack.is(net.minecraft.world.item.Items.RECOVERY_COMPASS)) {
+                return true;
+            }
+        }
+        *///?}
+        return false;
+    }
+
     private static List<WaypointMarker> collectWaypointMarkers(Player localPlayer) {
         List<WaypointMarker> markers = new ArrayList<>();
         UUID localPlayerId = localPlayer.getUUID();
@@ -376,10 +411,41 @@ public final class ReworkedLocatorBarHudRenderer {
         }
         *///?}
 
-        markers.sort(
-                Comparator.comparingInt((WaypointMarker marker) -> marker.index() > 0 ? marker.index() : Integer.MAX_VALUE)
-                        .thenComparing(WaypointMarker::waypointId)
-        );
+        if (LocatorBarConfig.isShowDeathWaypoint()) {
+            if (hasRecoveryCompass(localPlayer)) {
+                //? if >=26.1 {
+                net.minecraft.core.GlobalPos lastDeath = localPlayer.getLastDeathLocation().orElse(null);
+                //?} else {
+                /*net.minecraft.core.GlobalPos lastDeath = localPlayer.getLastDeathLocation().orElse(null);
+                *///?}
+                if (lastDeath != null && lastDeath.dimension().equals(localPlayer.level().dimension())) {
+                    double dx = lastDeath.pos().getX() + 0.5D - localPlayer.getX();
+                    double dz = lastDeath.pos().getZ() + 0.5D - localPlayer.getZ();
+                    if (dx * dx + dz * dz >= 1.0E-6D) {
+                        float directionYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+                        markers.add(new WaypointMarker(
+                                new UUID(0L, 0L),
+                                wrapTo180(directionYaw),
+                                0xFFFFFF,
+                                -1,
+                                "",
+                                true
+                        ));
+                    }
+                }
+            }
+        }
+
+        markers.sort((m1, m2) -> {
+            if (m1.isDeath() && !m2.isDeath()) return -1;
+            if (!m1.isDeath() && m2.isDeath()) return 1;
+            int idx1 = m1.index() > 0 ? m1.index() : Integer.MAX_VALUE;
+            int idx2 = m2.index() > 0 ? m2.index() : Integer.MAX_VALUE;
+            if (idx1 != idx2) {
+                return Integer.compare(idx1, idx2);
+            }
+            return m1.waypointId().compareTo(m2.waypointId());
+        });
         return markers;
     }
 
@@ -428,7 +494,7 @@ public final class ReworkedLocatorBarHudRenderer {
         String symbol = config != null ? config.character : WaypointData.getWaypointSymbol(stack);
 
         float directionYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-        markers.add(new WaypointMarker(waypointId, wrapTo180(directionYaw), color, index, symbol));
+        markers.add(new WaypointMarker(waypointId, wrapTo180(directionYaw), color, index, symbol, false));
     }
 
     private static int colorFromWaypointId(UUID waypointId) {
@@ -490,7 +556,7 @@ public final class ReworkedLocatorBarHudRenderer {
         return Math.round(value * 2.0F) / 2.0F;
     }
 
-    private record WaypointMarker(UUID waypointId, float directionYaw, int rgbColor, int index, String symbol) {
+    private record WaypointMarker(UUID waypointId, float directionYaw, int rgbColor, int index, String symbol, boolean isDeath) {
     }
 
     private record PlayerHeadMarker(Identifier skinTexture, float directionYaw, float alpha, float distance) {

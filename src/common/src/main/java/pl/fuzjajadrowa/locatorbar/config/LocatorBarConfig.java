@@ -237,6 +237,14 @@ public final class LocatorBarConfig {
         data.showWaypoints = showWaypoints;
     }
 
+    public static boolean isShowDeathWaypoint() {
+        return serverSettings == null ? data.showDeathWaypoint : serverSettings.showDeathWaypoint();
+    }
+
+    public static void setShowDeathWaypoint(boolean showDeathWaypoint) {
+        data.showDeathWaypoint = showDeathWaypoint;
+    }
+
     public static float getWaypointsScale() {
         return data.waypointsScale;
     }
@@ -360,6 +368,9 @@ public final class LocatorBarConfig {
 
         @SerializedName("showWaypoints")
         private boolean showWaypoints = true;
+
+        @SerializedName("showDeathWaypoint")
+        private boolean showDeathWaypoint = true;
 
         @SerializedName("waypointsScale")
         private float waypointsScale = 1.0F;
