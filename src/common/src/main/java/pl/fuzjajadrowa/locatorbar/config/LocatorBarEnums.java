@@ -28,29 +28,6 @@ public final class LocatorBarEnums {
         }
     }
 
-    public enum LocatorBarOffset {
-        CENTER("locatorbar.offset.center"),
-        LEFT("locatorbar.offset.left"),
-        RIGHT("locatorbar.offset.right");
-
-        private final String translationKey;
-
-        LocatorBarOffset(String translationKey) {
-            this.translationKey = translationKey;
-        }
-
-        public String translationKey() {
-            return translationKey;
-        }
-
-        public LocatorBarOffset next() {
-            return switch (this) {
-                case CENTER -> LEFT;
-                case LEFT -> RIGHT;
-                case RIGHT -> CENTER;
-            };
-        }
-    }
 
     public enum CoordinatesFormat {
         XYZ("locatorbar.coordinates_format.xyz"),

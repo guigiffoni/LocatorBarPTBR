@@ -14,7 +14,6 @@ import net.minecraft.network.chat.Component;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarConfig;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.CoordinatesFormat;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.DaysDisplayOrder;
-import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.LocatorBarOffset;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.LocatorBarStyle;
 
 import net.minecraft.client.gui.components.EditBox;
@@ -66,7 +65,8 @@ public final class LocatorBarConfigScreen extends Screen {
     private final Screen parent;
     private LocatorBarStyle selectedStyle;
     private float selectedScale;
-    private LocatorBarOffset selectedOffset;
+    private int selectedCustomOffsetX;
+    private int selectedCustomOffsetY;
     private float selectedViewAngle;
     private boolean selectedShowCoordinates;
     private boolean selectedElementsOnXpBar;
@@ -87,9 +87,10 @@ public final class LocatorBarConfigScreen extends Screen {
     private ConfigList list;
 
     private ConfigSlider scaleSlider;
+    private ConfigSlider customOffsetXSlider;
+    private ConfigSlider customOffsetYSlider;
     private ConfigSlider viewAngleSlider;
     private Button styleButton;
-    private Button offsetButton;
     private Button showCoordinatesButton;
     private Button elementsOnXpBarButton;
     private Button coordinatesFormatButton;
@@ -115,7 +116,8 @@ public final class LocatorBarConfigScreen extends Screen {
         this.parent = parent;
         this.selectedStyle = LocatorBarConfig.getStyle();
         this.selectedScale = LocatorBarConfig.getScale();
-        this.selectedOffset = LocatorBarConfig.getOffset();
+        this.selectedCustomOffsetX = LocatorBarConfig.getCustomOffsetX();
+        this.selectedCustomOffsetY = LocatorBarConfig.getCustomOffsetY();
         this.selectedViewAngle = LocatorBarConfig.getViewAngle();
         this.selectedShowCoordinates = LocatorBarConfig.isShowCoordinates();
         this.selectedElementsOnXpBar = LocatorBarConfig.isElementsOnXpBar();
@@ -153,7 +155,21 @@ public final class LocatorBarConfigScreen extends Screen {
                 value -> { selectedScale = value; applyAndSave(); },
                 value -> String.format(Locale.ROOT, "%.2fx", value));
 
-        offsetButton = Button.builder(offsetButtonText(), button -> cycleOffset()).bounds(0, 0, 120, 20).build();
+        customOffsetXSlider = new ConfigSlider(0, 0, 120, 20, Component.translatable("locatorbar.config.field.custom_offset_x"),
+                -500.0F, 500.0F, 1.0F, (float) selectedCustomOffsetX,
+                value -> { selectedCustomOffsetX = Math.round(value); applyAndSave(); },
+                value -> {
+                    int val = Math.round(value);
+                    return val >= 0 ? "+" + val + "px" : val + "px";
+                });
+
+        customOffsetYSlider = new ConfigSlider(0, 0, 120, 20, Component.translatable("locatorbar.config.field.custom_offset_y"),
+                -500.0F, 500.0F, 1.0F, (float) selectedCustomOffsetY,
+                value -> { selectedCustomOffsetY = Math.round(value); applyAndSave(); },
+                value -> {
+                    int val = Math.round(value);
+                    return val >= 0 ? "+" + val + "px" : val + "px";
+                });
 
         viewAngleSlider = new ConfigSlider(0, 0, 120, 20, Component.translatable("locatorbar.config.field.view_angle"),
                 VIEW_ANGLE_MIN, VIEW_ANGLE_MAX, VIEW_ANGLE_STEP, selectedViewAngle,
@@ -270,15 +286,7 @@ public final class LocatorBarConfigScreen extends Screen {
         return Component.translatable(selectedStyle.translationKey());
     }
 
-    private void cycleOffset() {
-        selectedOffset = selectedOffset.next();
-        offsetButton.setMessage(offsetButtonText());
-        applyAndSave();
-    }
 
-    private Component offsetButtonText() {
-        return Component.translatable(selectedOffset.translationKey());
-    }
 
     private void toggleShowCoordinates() {
         selectedShowCoordinates = !selectedShowCoordinates;
@@ -389,7 +397,6 @@ public final class LocatorBarConfigScreen extends Screen {
 
         styleButton.active = !serverControlled;
         scaleSlider.active = reworkedStyle;
-        offsetButton.active = reworkedStyle;
         viewAngleSlider.active = reworkedStyle;
         showCoordinatesButton.active = reworkedStyle && !serverControlled;
         elementsOnXpBarButton.active = classicStyle;
@@ -417,7 +424,8 @@ public final class LocatorBarConfigScreen extends Screen {
                 this.list.addEntry(Component.translatable("locatorbar.config.field.style"), styleButton);
                 if (selectedStyle == LocatorBarStyle.REWORKED) {
                     this.list.addEntry(Component.translatable("locatorbar.config.field.scale"), scaleSlider);
-                    this.list.addEntry(Component.translatable("locatorbar.config.field.offset"), offsetButton);
+                    this.list.addEntry(Component.translatable("locatorbar.config.field.custom_offset_x"), customOffsetXSlider);
+                    this.list.addEntry(Component.translatable("locatorbar.config.field.custom_offset_y"), customOffsetYSlider);
                     this.list.addEntry(Component.translatable("locatorbar.config.field.view_angle"), viewAngleSlider);
                     this.list.addEntry(Component.translatable("locatorbar.config.field.show_coordinates"), showCoordinatesButton);
                     this.list.addEntry(Component.translatable("locatorbar.config.field.coordinates_format"), coordinatesFormatButton);
@@ -425,6 +433,8 @@ public final class LocatorBarConfigScreen extends Screen {
                     this.list.addEntry(Component.translatable("locatorbar.config.field.days_display_order"), daysDisplayOrderButton);
                 } else if (selectedStyle == LocatorBarStyle.CLASSIC) {
                     this.list.addEntry(Component.translatable("locatorbar.config.field.elements_on_xp_bar"), elementsOnXpBarButton);
+                    this.list.addEntry(Component.translatable("locatorbar.config.field.custom_offset_x"), customOffsetXSlider);
+                    this.list.addEntry(Component.translatable("locatorbar.config.field.custom_offset_y"), customOffsetYSlider);
                 }
             } else if (page == 1) {
                 this.list.addEntry(Component.translatable("locatorbar.config.field.show_world_directions"), showWorldDirectionsButton);
@@ -535,7 +545,6 @@ public final class LocatorBarConfigScreen extends Screen {
             LocatorBarConfig.setStyle(selectedStyle);
         }
         LocatorBarConfig.setScale(selectedScale);
-        LocatorBarConfig.setOffset(selectedOffset);
         LocatorBarConfig.setViewAngle(selectedViewAngle);
         if (!serverControlled) {
             LocatorBarConfig.setShowCoordinates(selectedShowCoordinates);
@@ -563,6 +572,8 @@ public final class LocatorBarConfigScreen extends Screen {
         if (!serverControlled) {
             LocatorBarConfig.setMaxVisibleWaypoints(selectedMaxVisibleWaypoints);
         }
+        LocatorBarConfig.setCustomOffsetX(selectedCustomOffsetX);
+        LocatorBarConfig.setCustomOffsetY(selectedCustomOffsetY);
         LocatorBarConfig.save();
     }
 

@@ -6,7 +6,6 @@ import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.CoordinatesFormat;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.DaysDisplayOrder;
-import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.LocatorBarOffset;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.LocatorBarStyle;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarServerConfig.ServerSettings;
 
@@ -44,9 +43,6 @@ public final class LocatorBarConfig {
             if (data.style == null) {
                 data.style = LocatorBarStyle.REWORKED;
             }
-            if (data.offset == null) {
-                data.offset = LocatorBarOffset.CENTER;
-            }
             if (data.coordinatesFormat == null) {
                 data.coordinatesFormat = CoordinatesFormat.XYZ;
             }
@@ -57,6 +53,8 @@ public final class LocatorBarConfig {
                 data.waypoints = new HashMap<>();
             }
             data.scale = clamp(data.scale, 0.5F, 2.0F);
+            data.customOffsetX = clampInt(data.customOffsetX, -500, 500);
+            data.customOffsetY = clampInt(data.customOffsetY, -500, 500);
             data.viewAngle = clamp(data.viewAngle, 30.0F, 180.0F);
             data.worldDirectionsScale = clamp(data.worldDirectionsScale, 0.5F, 2.0F);
             data.playerHeadsScale = clamp(data.playerHeadsScale, 0.5F, 2.0F);
@@ -100,12 +98,22 @@ public final class LocatorBarConfig {
         data.scale = clamp(scale, 0.5F, 2.0F);
     }
 
-    public static LocatorBarOffset getOffset() {
-        return data.offset;
+
+
+    public static int getCustomOffsetX() {
+        return data.customOffsetX;
     }
 
-    public static void setOffset(LocatorBarOffset offset) {
-        data.offset = offset;
+    public static void setCustomOffsetX(int customOffsetX) {
+        data.customOffsetX = clampInt(customOffsetX, -500, 500);
+    }
+
+    public static int getCustomOffsetY() {
+        return data.customOffsetY;
+    }
+
+    public static void setCustomOffsetY(int customOffsetY) {
+        data.customOffsetY = clampInt(customOffsetY, -500, 500);
     }
 
     public static float getViewAngle() {
@@ -306,8 +314,13 @@ public final class LocatorBarConfig {
         @SerializedName("scale")
         private float scale = 1.0F;
 
-        @SerializedName("offset")
-        private LocatorBarOffset offset = LocatorBarOffset.CENTER;
+
+
+        @SerializedName("customOffsetX")
+        private int customOffsetX = 0;
+
+        @SerializedName("customOffsetY")
+        private int customOffsetY = 0;
 
         @SerializedName("viewAngle")
         private float viewAngle = 90.0F;

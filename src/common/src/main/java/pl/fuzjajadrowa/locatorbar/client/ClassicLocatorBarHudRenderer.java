@@ -94,8 +94,8 @@ public final class ClassicLocatorBarHudRenderer {
 
         int screenWidth = minecraft.getWindow().getGuiScaledWidth();
         int screenHeight = minecraft.getWindow().getGuiScaledHeight();
-        int x = (screenWidth - BAR_TEXTURE_WIDTH) / 2;
-        int y = screenHeight - 29;
+        int x = ((screenWidth - BAR_TEXTURE_WIDTH) / 2) + LocatorBarConfig.getCustomOffsetX();
+        int y = screenHeight - 29 + LocatorBarConfig.getCustomOffsetY();
 
         Player player = minecraft.player;
         if (player == null) {

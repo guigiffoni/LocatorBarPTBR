@@ -7,10 +7,6 @@
   "locatorbar.style.classic": "Classic",
   "locatorbar.style.off": "Off",
 
-  "locatorbar.offset.center": "Center",
-  "locatorbar.offset.left": "Left",
-  "locatorbar.offset.right": "Right",
-
   "locatorbar.coordinates_format.xyz": "XYZ",
   "locatorbar.coordinates_format.xz": "XZ",
 
@@ -26,7 +22,8 @@
 
   "locatorbar.config.field.style": "Locator bar style",
   "locatorbar.config.field.scale": "Locator bar scale",
-  "locatorbar.config.field.offset": "Locator bar offset",
+  "locatorbar.config.field.custom_offset_x": "X offset",
+  "locatorbar.config.field.custom_offset_y": "Y offset",
   "locatorbar.config.field.view_angle": "View angle",
   "locatorbar.config.field.elements_on_xp_bar": "Elements on XP bar",
   "locatorbar.config.field.show_coordinates": "Show coordinates",

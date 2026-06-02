@@ -87,13 +87,8 @@ public final class ReworkedLocatorBarHudRenderer {
         int playerHeadOverflow = Math.max(BASE_PLAYER_HEAD_OVERFLOW, ((playerHeadMarkerSize - BAR_TEXTURE_HEIGHT) / 2) + BASE_PLAYER_HEAD_OVERFLOW);
 
         int screenWidth = minecraft.getWindow().getGuiScaledWidth();
-        int x = switch (LocatorBarConfig.getOffset()) {
-            case LEFT -> BAR_MARGIN;
-            case RIGHT -> screenWidth - scaledBarWidth - BAR_MARGIN;
-            case CENTER -> (screenWidth - scaledBarWidth) / 2;
-        };
-        x = Math.max(0, x);
-        int y = 5;
+        int x = ((screenWidth - scaledBarWidth) / 2) + LocatorBarConfig.getCustomOffsetX();
+        int y = 5 + LocatorBarConfig.getCustomOffsetY();
 
         Player player = minecraft.player;
         if (player == null) {
