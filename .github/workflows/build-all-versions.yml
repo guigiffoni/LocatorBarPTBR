@@ -34,14 +34,14 @@ jobs:
 
       - name: Sync target properties
         run: |
-          cp gradle/targets/26.1.properties versions/26.1-fabric/gradle.properties
-          cp gradle/targets/26.1.properties versions/26.1-neoforge/gradle.properties
+          cp gradle/targets/26.2.properties versions/26.2-fabric/gradle.properties
+          cp gradle/targets/26.2.properties versions/26.2-neoforge/gradle.properties
 
       - name: Inspect Gradle projects
         run: ./gradlew --no-daemon projects --stacktrace
 
       - name: Check active code
-        run: ./gradlew --no-daemon :26.1-fabric:check :26.1-neoforge:check --stacktrace
+        run: ./gradlew --no-daemon :26.2-fabric:check :26.2-neoforge:check --stacktrace
 
   build:
     name: Build ${{ matrix.target }}
@@ -58,8 +58,8 @@ jobs:
           - 1.21.4-neoforge
           - 1.21.11-fabric
           - 1.21.11-neoforge
-          - 26.1-fabric
-          - 26.1-neoforge
+          - 26.2-fabric
+          - 26.2-neoforge
 
     steps:
       - name: Checkout
