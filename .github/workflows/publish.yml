@@ -37,6 +37,7 @@ jobs:
             cp "gradle/targets/${target}.properties" "versions/${target}-fabric/gradle.properties"
             cp "gradle/targets/${target}.properties" "versions/${target}-neoforge/gradle.properties"
           done
+          cp "gradle/targets/1.20.1.properties" "versions/1.20.1-forge/gradle.properties"
 
       - name: Validate publish targets
         run: ./gradlew --no-daemon validatePublishTargets --stacktrace
