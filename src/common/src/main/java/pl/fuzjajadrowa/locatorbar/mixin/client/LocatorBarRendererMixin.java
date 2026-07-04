@@ -1,5 +1,6 @@
 package pl.fuzjajadrowa.locatorbar.mixin.client;
 
+//? if >=1.20.5 {
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 //? if >=26.2
@@ -39,3 +40,11 @@ public abstract class LocatorBarRendererMixin {
     }
     //?}
 }
+//?} else {
+/*import net.minecraft.client.Minecraft;
+import org.spongepowered.asm.mixin.Mixin;
+
+@Mixin(Minecraft.class)
+public abstract class LocatorBarRendererMixin {
+}
+*///?}

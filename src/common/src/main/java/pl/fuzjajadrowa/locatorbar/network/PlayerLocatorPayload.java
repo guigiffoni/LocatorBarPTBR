@@ -1,8 +1,10 @@
 package pl.fuzjajadrowa.locatorbar.network;
 
+//? if >=1.20.5 {
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+//?}
 import net.minecraft.resources.Identifier;
 import pl.fuzjajadrowa.locatorbar.LocatorBar;
 
@@ -10,7 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+//? if >=1.20.5
 public record PlayerLocatorPayload(List<Entry> entries) implements CustomPacketPayload {
+//? if <1.20.5
+/*public record PlayerLocatorPayload(List<Entry> entries) {*/
+
+    //? if >=1.20.5 {
     public static final Type<PlayerLocatorPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(LocatorBar.MOD_ID, "player_locator"));
     public static final StreamCodec<RegistryFriendlyByteBuf, PlayerLocatorPayload> STREAM_CODEC = StreamCodec.ofMember(
             PlayerLocatorPayload::write,
@@ -39,6 +46,7 @@ public record PlayerLocatorPayload(List<Entry> entries) implements CustomPacketP
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
+    //?}
 
     public record Entry(UUID playerId, double x, double z) {
     }

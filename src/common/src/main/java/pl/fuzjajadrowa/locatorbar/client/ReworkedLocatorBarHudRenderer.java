@@ -2,14 +2,20 @@ package pl.fuzjajadrowa.locatorbar.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+//? if >=1.20.5 {
 import net.minecraft.core.component.DataComponents;
+//?}
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+//? if >=1.20.5 {
 import net.minecraft.world.item.component.LodestoneTracker;
+//?}
 import pl.fuzjajadrowa.locatorbar.LocatorBar;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarConfig;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.CoordinatesFormat;
@@ -457,16 +463,24 @@ public final class ReworkedLocatorBarHudRenderer {
     }
 
     private static void addWaypointMarker(List<WaypointMarker> markers, ItemStack stack, Player localPlayer, UUID localPlayerId) {
+        //? if >=1.20.5 {
         LodestoneTracker tracker = stack.get(DataComponents.LODESTONE_TRACKER);
         if (tracker == null || tracker.target().isEmpty()) {
             return;
         }
+        //?} else {
+        /*CompoundTag tag = stack.getTag();
+        if (tag == null || !tag.contains("LodestonePos") || !tag.contains("LodestoneDimension")) {
+            return;
+        }
+        *///?}
 
         UUID owner = WaypointData.getOwner(stack);
         if (owner != null && !owner.equals(localPlayerId)) {
             return;
         }
 
+        //? if >=1.20.5 {
         GlobalPos target = tracker.target().get();
         if (!target.dimension().equals(localPlayer.level().dimension())) {
             return;
@@ -474,6 +488,17 @@ public final class ReworkedLocatorBarHudRenderer {
 
         double dx = target.pos().getX() + 0.5D - localPlayer.getX();
         double dz = target.pos().getZ() + 0.5D - localPlayer.getZ();
+        //?} else {
+        /*CompoundTag posTag = tag.getCompound("LodestonePos");
+        BlockPos targetPos = net.minecraft.nbt.NbtUtils.readBlockPos(posTag);
+        String dimensionStr = tag.getString("LodestoneDimension");
+        if (!dimensionStr.equals(localPlayer.level().dimension().location().toString())) {
+            return;
+        }
+
+        double dx = targetPos.getX() + 0.5D - localPlayer.getX();
+        double dz = targetPos.getZ() + 0.5D - localPlayer.getZ();
+        *///?}
         if (dx * dx + dz * dz < 1.0E-6D) {
             return;
         }

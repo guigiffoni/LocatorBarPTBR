@@ -4,7 +4,11 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
+//? if >=1.20.2 {
 import net.minecraft.client.gui.screens.options.OptionsScreen;
+//?} else {
+/*import net.minecraft.client.gui.screens.OptionsScreen;
+*///?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import org.spongepowered.asm.mixin.Mixin;
@@ -39,10 +43,12 @@ public abstract class OptionsScreenMixin extends Screen {
         locatorbar$updateButtonPosition();
     }
 
+    //? if >=1.20.2 {
     @Inject(method = "repositionElements", at = @At("TAIL"))
     private void locatorbar$onRepositionElements(CallbackInfo ci) {
         locatorbar$updateButtonPosition();
     }
+    //?}
 
     @Unique
     private void locatorbar$updateButtonPosition() {

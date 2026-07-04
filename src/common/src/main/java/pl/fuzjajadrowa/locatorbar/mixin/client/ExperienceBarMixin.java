@@ -1,5 +1,6 @@
 package pl.fuzjajadrowa.locatorbar.mixin.client;
 
+//? if >=1.20.5
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -60,12 +61,24 @@ public abstract class ExperienceBarMixin {
             ci.cancel();
         }
     }
+    */
 
-    @Inject(method = "renderExperienceLevel", at = @At("HEAD"), cancellable = true)
+    //? if >=1.20.5 {
+    /*@Inject(method = "renderExperienceLevel", at = @At("HEAD"), cancellable = true)
     private void locatorbar$hideExperienceLevel(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (ClassicExperienceBarState.shouldHideVanillaExperienceBar(Minecraft.getInstance())) {
             ci.cancel();
         }
     }
-    *///?}
+    */
+    //?} elif >=1.20.2 {
+    /*@Inject(method = "renderExperienceLevel", at = @At("HEAD"), cancellable = true)
+    private void locatorbar$hideExperienceLevel(GuiGraphicsExtractor guiGraphics, int y, CallbackInfo ci) {
+        if (ClassicExperienceBarState.shouldHideVanillaExperienceBar(Minecraft.getInstance())) {
+            ci.cancel();
+        }
+    }
+    */
+    //?}
+    //?}
 }

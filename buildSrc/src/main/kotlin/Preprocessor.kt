@@ -97,6 +97,10 @@ object Preprocessor {
 
     private fun applyReplacements(line: String, version: String): String {
         var result = line
+        if (evalVersion(version, "<1.21")) {
+            result = result
+                .replace("Identifier.fromNamespaceAndPath(", "new Identifier(")
+        }
         if (evalVersion(version, "<1.21.11")) {
             result = result
                 .replace("Identifier", "ResourceLocation")

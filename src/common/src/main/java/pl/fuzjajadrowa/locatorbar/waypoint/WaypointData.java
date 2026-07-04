@@ -1,6 +1,8 @@
 package pl.fuzjajadrowa.locatorbar.waypoint;
 
+//? if >=1.20.5 {
 import net.minecraft.core.component.DataComponents;
+//?}
 import net.minecraft.nbt.CompoundTag;
 //? if <1.21.11
 /*import net.minecraft.nbt.Tag;*/
@@ -11,8 +13,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+//? if >=1.20.5 {
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.LodestoneTracker;
+//?}
 
 import java.util.UUID;
 
@@ -28,10 +32,16 @@ public final class WaypointData {
     }
 
     public static void ensureWaypointData(ItemStack stack, Player player) {
+        //? if >=1.20.5 {
         LodestoneTracker tracker = stack.get(DataComponents.LODESTONE_TRACKER);
         if (tracker == null || tracker.target().isEmpty()) {
             return;
         }
+        //?} else {
+        /*if (stack.isEmpty() || !stack.getOrCreateTag().contains("LodestonePos")) {
+            return;
+        }
+        *///?}
 
         CompoundTag tag = getCustomDataTag(stack);
         //? if >=1.21.11
@@ -56,10 +66,12 @@ public final class WaypointData {
             tag.putInt(INDEX_TAG, findHighestWaypointIndex(player) + 1);
         }
 
+        //? if >=1.20.5
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
     public static boolean ensureWaypointData(ItemStack stack, Player player, ResourceKey<Level> dimension, BlockPos pos) {
+        //? if >=1.20.5 {
         LodestoneTracker tracker = stack.get(DataComponents.LODESTONE_TRACKER);
         if (tracker == null || tracker.target().isEmpty()) {
             return false;
@@ -69,6 +81,18 @@ public final class WaypointData {
         if (!target.dimension().equals(dimension) || !target.pos().equals(pos)) {
             return false;
         }
+        //?} else {
+        /*CompoundTag tag = stack.getTag();
+        if (tag == null || !tag.contains("LodestonePos") || !tag.contains("LodestoneDimension")) {
+            return false;
+        }
+        CompoundTag posTag = tag.getCompound("LodestonePos");
+        BlockPos targetPos = net.minecraft.nbt.NbtUtils.readBlockPos(posTag);
+        String dimensionStr = tag.getString("LodestoneDimension");
+        if (!dimensionStr.equals(dimension.location().toString()) || !targetPos.equals(pos)) {
+            return false;
+        }
+        *///?}
 
         ensureWaypointData(stack, player);
         return getWaypointId(stack) != null;
@@ -160,6 +184,7 @@ public final class WaypointData {
         } else {
             tag.remove(HIDDEN_TAG);
         }
+        //? if >=1.20.5
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
@@ -184,6 +209,7 @@ public final class WaypointData {
         } else {
             tag.putInt(COLOR_TAG, color);
         }
+        //? if >=1.20.5
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
@@ -212,6 +238,7 @@ public final class WaypointData {
         } else {
             tag.putString(SYMBOL_TAG, symbol.substring(0, 1));
         }
+        //? if >=1.20.5
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
@@ -256,11 +283,17 @@ public final class WaypointData {
         tag.remove(COLOR_TAG);
         tag.remove(SYMBOL_TAG);
 
+        //? if >=1.20.5 {
         if (tag.isEmpty()) {
             stack.remove(DataComponents.CUSTOM_DATA);
         } else {
             stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
         }
+        //?} else {
+        /*if (tag.isEmpty()) {
+            stack.setTag(null);
+        }
+        *///?}
     }
 
     private static int findHighestWaypointIndex(Player player) {
@@ -298,16 +331,24 @@ public final class WaypointData {
     }
 
     private static CompoundTag getCustomDataTag(ItemStack stack) {
+        //? if >=1.20.5 {
         CompoundTag tag = getCustomDataTagNullable(stack);
         return tag == null ? new CompoundTag() : tag;
+        //?} else {
+        /*return stack.getOrCreateTag();
+        *///?}
     }
 
     private static CompoundTag getCustomDataTagNullable(ItemStack stack) {
+        //? if >=1.20.5 {
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData == null) {
             return null;
         }
         return customData.copyTag();
+        //?} else {
+        /*return stack.getTag();
+        *///?}
     }
 
     //? if >=1.21.11 {

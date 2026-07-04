@@ -1,7 +1,7 @@
 plugins {
     id("dev.kikugie.stonecutter")
 }
-stonecutter active "26.2-fabric"
+stonecutter active "1.20.1-forge"
 
 stonecutter parameters {
     swaps["mod_version"] = "\"" + property("mod.version") + "\";"

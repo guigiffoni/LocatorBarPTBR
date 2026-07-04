@@ -1,14 +1,21 @@
 package pl.fuzjajadrowa.locatorbar.network;
 
+//? if >=1.20.5 {
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+//?}
 import net.minecraft.resources.Identifier;
 import pl.fuzjajadrowa.locatorbar.LocatorBar;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.LocatorBarStyle;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarServerConfig.ServerSettings;
 
+//? if >=1.20.5
 public record ServerConfigPayload(ServerSettings settings) implements CustomPacketPayload {
+//? if <1.20.5
+/*public record ServerConfigPayload(ServerSettings settings) {*/
+
+    //? if >=1.20.5 {
     public static final Type<ServerConfigPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(LocatorBar.MOD_ID, "server_config"));
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerConfigPayload> STREAM_CODEC = StreamCodec.ofMember(
             ServerConfigPayload::write,
@@ -53,4 +60,5 @@ public record ServerConfigPayload(ServerSettings settings) implements CustomPack
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
+    //?}
 }

@@ -17,12 +17,15 @@ import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.DaysDisplayOrder;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarEnums.LocatorBarStyle;
 
 import net.minecraft.client.gui.components.EditBox;
+//? if >=1.20.5 {
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.LodestoneTracker;
+//?}
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.LodestoneTracker;
 import pl.fuzjajadrowa.locatorbar.LocatorBar;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarConfig;
 import pl.fuzjajadrowa.locatorbar.config.LocatorBarConfig.WaypointConfig;
@@ -251,7 +254,11 @@ public final class LocatorBarConfigScreen extends Screen {
     *///?} else {
     /*@Override
     public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        //? if >=1.21 {
         renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+        //?} else {
+        renderBackground(guiGraphics);
+        //?}
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
@@ -524,6 +531,7 @@ public final class LocatorBarConfigScreen extends Screen {
     }
 
     private void addManagedWaypoint(List<ManagedWaypoint> waypoints, Set<UUID> seenIds, ItemStack stack, String currentWorld) {
+        //? if >=1.20.5 {
         LodestoneTracker tracker = stack.get(DataComponents.LODESTONE_TRACKER);
         if (tracker == null || tracker.target().isEmpty()) {
             return;
@@ -532,6 +540,17 @@ public final class LocatorBarConfigScreen extends Screen {
         if (!tracker.target().get().dimension().identifier().toString().equals(currentWorld)) {
             return;
         }
+        //?} else {
+        /*CompoundTag tag = stack.getTag();
+        if (tag == null || !tag.contains("LodestonePos") || !tag.contains("LodestoneDimension")) {
+            return;
+        }
+
+        String dimensionStr = tag.getString("LodestoneDimension");
+        if (!dimensionStr.equals(currentWorld)) {
+            return;
+        }
+        *///?}
 
         UUID waypointId = WaypointData.getWaypointId(stack);
         if (waypointId == null) {
@@ -614,7 +633,11 @@ public final class LocatorBarConfigScreen extends Screen {
 
     private final class ConfigList extends ContainerObjectSelectionList<ConfigList.AbstractEntry> {
         public ConfigList(Minecraft minecraft, int width, int height, int y, int itemHeight) {
+            //? if >=1.21 {
             super(minecraft, width, height, y, itemHeight);
+            //?} else {
+            /*super(minecraft, width, LocatorBarConfigScreen.this.height, y, y + height, itemHeight);
+            *///?}
         }
 
         public void clearList() {

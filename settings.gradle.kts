@@ -23,6 +23,7 @@ stonecutter {
                     sc.eval(version, ">= 26.1") && loader == "neoforge" -> "build-unobfuscated-neoforge.gradle.kts"
                     loader == "fabric" -> "build-obfuscated-fabric.gradle.kts"
                     loader == "neoforge" -> "build-obfuscated-neoforge.gradle.kts"
+                    loader == "forge" -> "build-obfuscated-forge.gradle.kts"
                     else -> error("Unsupported loader: $loader")
                 }
                 version("$version-$loader", version).buildscript(buildscript)
@@ -30,6 +31,7 @@ stonecutter {
         }
         mc("fabric", "1.21.1", "1.21.4", "1.21.11", "26.2")
         mc("neoforge", "1.21.1", "1.21.4", "1.21.11", "26.2")
+        mc("forge", "1.20.1")
     }
     create(rootProject)
 }

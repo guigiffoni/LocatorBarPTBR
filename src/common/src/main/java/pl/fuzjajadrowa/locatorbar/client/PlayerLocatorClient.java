@@ -5,7 +5,10 @@ import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
+//? if >=1.20.2
 import net.minecraft.world.entity.player.PlayerSkin;
+//? if <1.20.2
+/*import net.minecraft.client.player.AbstractClientPlayer;*/
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -62,9 +65,17 @@ public final class PlayerLocatorClient {
                 continue;
             }
 
+            //? if >=1.21.11 {
             PlayerSkin playerSkin = playerInfo.getSkin();
+            Identifier skinTexture = skinTexture(playerSkin);
+            //?} elif >=1.20.2 {
+            /*PlayerSkin playerSkin = playerInfo.getSkin();
+            Identifier skinTexture = skinTexture(playerSkin);
+            *///?} else {
+            /*Identifier skinTexture = playerInfo.getSkinLocation();
+            *///?}
             float directionYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-            markers.add(new Marker(skinTexture(playerSkin), directionYaw, alpha, distance));
+            markers.add(new Marker(skinTexture, directionYaw, alpha, distance));
         }
 
         markers.sort(Comparator.comparingDouble(Marker::distance));
@@ -90,13 +101,17 @@ public final class PlayerLocatorClient {
                 continue;
             }
 
-            PlayerSkin playerSkin = Minecraft.getInstance().getSkinManager()
-                    //? if >=1.21.11
-                    .createLookup(otherPlayer.getGameProfile(), false).get();
-                    //? if <1.21.11
-                    /*.getInsecureSkin(otherPlayer.getGameProfile());*/
+            //? if >=1.21.11 {
+            PlayerSkin playerSkin = Minecraft.getInstance().getSkinManager().createLookup(otherPlayer.getGameProfile(), false).get();
+            Identifier skinTexture = skinTexture(playerSkin);
+            //?} elif >=1.20.2 {
+            /*PlayerSkin playerSkin = Minecraft.getInstance().getSkinManager().getInsecureSkin(otherPlayer.getGameProfile());
+            Identifier skinTexture = skinTexture(playerSkin);
+            *///?} else {
+            /*Identifier skinTexture = otherPlayer instanceof AbstractClientPlayer ? ((AbstractClientPlayer) otherPlayer).getSkinTextureLocation() : net.minecraft.client.resources.DefaultPlayerSkin.getDefaultSkin(otherPlayer.getUUID());
+            *///?}
             float directionYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-            markers.add(new Marker(skinTexture(playerSkin), directionYaw, alpha, distance));
+            markers.add(new Marker(skinTexture, directionYaw, alpha, distance));
         }
 
         markers.sort(Comparator.comparingDouble(Marker::distance));
@@ -126,12 +141,14 @@ public final class PlayerLocatorClient {
                 || helmetItem == Items.PIGLIN_HEAD;
     }
 
+    //? if >=1.20.2 {
     private static Identifier skinTexture(PlayerSkin playerSkin) {
         //? if >=1.21.11
         return playerSkin.body().texturePath();
         //? if <1.21.11
         /*return playerSkin.texture();*/
     }
+    //?}
 
     @FunctionalInterface
     public interface AlphaFunction {
